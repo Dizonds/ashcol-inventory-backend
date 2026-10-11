@@ -146,8 +146,11 @@ export function productData(body) {
   const allowedCategories = categoriesByType[data.itemType] || [];
   if (!allowedCategories.includes(data.category))
     fail(`Category "${data.category}" does not match the item type "${data.itemType}".`);
-  if (data.itemType === "AC Unit" && data.unitOfMeasure !== "UNIT")
-    fail("AC units must use UNIT.");
+  if (
+    data.itemType === "AC Unit" &&
+    !["UNIT", "SET"].includes(data.unitOfMeasure)
+  )
+    fail("AC units must use UNIT or SET.");
   checkQuantity(data.reorderLevel, data.unitOfMeasure);
   return data;
 }
