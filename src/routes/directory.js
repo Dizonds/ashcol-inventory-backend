@@ -1,26 +1,19 @@
 import { Router } from "express";
-import { Branch, Brand, User, Supplier } from "../models.js";
+import { ServiceVan, Brand, User, Supplier } from "../models.js";
 import { admin, manage, hashPassword } from "../auth.js";
 import { text, fail, json } from "../helpers.js";
 
 const router = Router();
-router.get("/branches", (req, res, next) => {
-  const filter =
-    req.user.role === "ADMIN"
-      ? {}
-      : { $or: [{ _id: req.user.branchId }, { branchType: "SERVICE_VAN" }] };
-  Branch.find(filter)
+router.get("/service-vans", (req, res, next) => {
+  ServiceVan.find()
     .sort({ name: 1 })
     .then((items) => res.json(items.map(json)))
     .catch(next);
 });
-router.post("/branches", admin, (req, res, next) => {
-  const branchType = ["SERVICE_VAN", "WAREHOUSE"].includes(req.body.branchType)
-    ? req.body.branchType
-    : "WAREHOUSE";
-  const id = text(req.body.id, "Branch ID");
+router.post("/service-vans", admin, (req, res, next) => {
+  const id = text(req.body.id, "Vehicle ID");
   if (!/^[A-Za-z0-9-]+$/.test(id))
-    fail("Use letters, numbers and hyphens for branch IDs.");
+    fail("Use letters, numbers and hyphens for vehicle IDs.");
   const plateNumber = text(req.body.plateNumber || "", "Plate number", false);
   const driverName = text(req.body.driverName || "", "Driver / Technician", false);
   const status = ["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"].includes(
@@ -28,10 +21,9 @@ router.post("/branches", admin, (req, res, next) => {
   )
     ? req.body.status
     : "AVAILABLE";
-  Branch.create({
+  ServiceVan.create({
     _id: id,
-    name: text(req.body.name, "Branch name"),
-    branchType,
+    name: text(req.body.name, "Vehicle name"),
     plateNumber,
     driverName,
     status,
@@ -40,25 +32,24 @@ router.post("/branches", admin, (req, res, next) => {
     .catch(next);
 });
 // Technicians/drivers, managers and admins can update van status (e.g. arrived, on field, available)
-router.patch("/branches/:id/status", (req, res, next) => {
+router.patch("/service-vans/:id/status", (req, res, next) => {
   const status = text(req.body.status, "Status");
   if (!["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"].includes(status))
     fail("Invalid status.");
-  Branch.findById(req.params.id)
-    .then((branch) => {
-      if (!branch) fail("Branch or van not found.", 404);
+  ServiceVan.findById(req.params.id)
+    .then((van) => {
+      if (!van) fail("Service vehicle not found.", 404);
       if (
-        branch.branchType === "SERVICE_VAN" &&
         ["ON_FIELD", "ARRIVED"].includes(status) &&
-        !branch.driverName
+        !van.driverName
       ) {
         fail(
           "An assigned technician/driver is required before dispatching or marking the van as arrived on field.",
           400,
         );
       }
-      branch.status = status;
-      return branch.save();
+      van.status = status;
+      return van.save();
     })
     .then((item) => {
       res.json(json(item));
@@ -66,15 +57,15 @@ router.patch("/branches/:id/status", (req, res, next) => {
     .catch(next);
 });
 // Assign driver / technician to a van (Managers & Admins)
-router.patch("/branches/:id/driver", manage, (req, res, next) => {
+router.patch("/service-vans/:id/driver", manage, (req, res, next) => {
   const driverName = text(req.body.driverName || "", "Driver name", false);
-  Branch.findByIdAndUpdate(
+  ServiceVan.findByIdAndUpdate(
     req.params.id,
     { $set: { driverName } },
     { new: true },
   )
     .then((item) => {
-      if (!item) fail("Van not found.", 404);
+      if (!item) fail("Service vehicle not found.", 404);
       res.json(json(item));
     })
     .catch(next);
@@ -146,12 +137,9 @@ router.post("/users", admin, (req, res, next) => {
   if (password.length < 10) fail("Use at least 10 characters for passwords.");
   const role = text(req.body.role, "Role");
   if (!["ADMIN", "MANAGER", "EMPLOYEE"].includes(role)) fail("Choose a valid role.");
-  const branchId = text(req.body.branchId, "Branch");
-  Branch.findById(branchId)
-    .then((branch) => {
-      if (!branch) fail("Branch not found.", 404);
-      return hashPassword(password);
-    })
+  const branchId = text(req.body.branchId, "Inventory scope");
+  if (branchId !== "LOCAL-WAREHOUSE") fail("Only the Taguig warehouse is available.", 403);
+  Promise.resolve(hashPassword(password))
     .then((passwordHash) =>
       User.create({
         email,

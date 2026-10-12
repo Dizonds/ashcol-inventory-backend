@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import {
-  Branch,
+  ServiceVan,
   Brand,
   Product,
   Movement,
@@ -29,19 +29,10 @@ export function initializeDatabase() {
           "Legacy inventory needs a branch assignment. Back up the database and run npm run migrate -- BRANCH_ID. See SETUP.md.",
         );
       return Promise.all(
-        [Product, Movement, Branch, Brand, User, Session, PartRequest].map(
+        [Product, Movement, ServiceVan, Brand, User, Session, PartRequest].map(
           (model) => model.createIndexes(),
         ),
       );
-    })
-    .then(() => Branch.countDocuments())
-    .then((count) => {
-      // Local identifiers, not claims about production portal IDs.
-      if (count === 0)
-        return Branch.create({
-          _id: "LOCAL-WAREHOUSE",
-          name: "Main Warehouse (local)",
-        });
     })
     .then(() => Brand.countDocuments())
     .then((count) => {

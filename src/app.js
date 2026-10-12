@@ -29,7 +29,7 @@ app.use((error, req, res, next) => {
       .status(409)
       .json({
         error:
-          "That SKU already exists in this branch (including archived items), or the account/name already exists.",
+          "That SKU already exists in this warehouse scope (including archived items), or the account/name already exists.",
       });
   if (error.name === "ValidationError" || error.name === "CastError")
     return res.status(400).json({ error: error.message });

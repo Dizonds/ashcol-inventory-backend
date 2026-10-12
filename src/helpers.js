@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Branch, Movement, Product } from "./models.js";
+import { ServiceVan, Movement, Product } from "./models.js";
 
 export function fail(message, status = 400) {
   const error = new Error(message);
@@ -15,8 +15,8 @@ export function text(value, label, required = true) {
 }
 export function generateTicket(prefix = "SM") {
   const yy = String(new Date().getFullYear()).slice(-2);
-  const rand = String(Math.floor(10 + Math.random() * 90));
-  return `${prefix}${yy}${rand}`;
+  const seq = Date.now().toString(36).slice(-4).toUpperCase();
+  return `${prefix}${yy}${seq}`;
 }
 export function number(value, label) {
   if (
@@ -51,16 +51,10 @@ export function checkQuantity(quantity, unit) {
     fail("Use at most 3 decimal places for quantities.");
 }
 export function branchScope(req, branchId) {
-  const id = text(branchId || req.user.branchId, "Branch");
-  return Branch.findById(id).then((branch) => {
-    if (!branch) fail("Branch not found.", 404);
-    if (
-      req.user.role !== "ADMIN" &&
-      id !== req.user.branchId &&
-      branch.branchType !== "SERVICE_VAN"
-    ) {
-      fail("You can only access your assigned branch.", 403);
-    }
+  const id = text(branchId || req.user.branchId, "Inventory scope");
+  if (id === "LOCAL-WAREHOUSE") return Promise.resolve(id);
+  return ServiceVan.findById(id).then((van) => {
+    if (!van) fail("Service vehicle not found.", 404);
     return id;
   });
 }

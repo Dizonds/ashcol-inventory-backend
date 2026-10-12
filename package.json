@@ -6,6 +6,7 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "bootstrap": "node scripts/bootstrap.js",
+    "migrate:service-vans": "node scripts/migrate-service-vans.js",
     "migrate": "node scripts/migrate.js",
     "test": "node --test --test-concurrency=1 test/inventory.test.js",
     "test:browser": "node scripts/browser-smoke.js"

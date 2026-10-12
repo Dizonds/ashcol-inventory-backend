@@ -1,12 +1,12 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import { User, Branch } from "../src/models.js";
+import { User } from "../src/models.js";
 import { hashPassword } from "../src/auth.js";
 import { initializeDatabase } from "../src/setup.js";
 
 const email = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const password = process.env.ADMIN_PASSWORD || "";
-const branchId = process.env.ADMIN_BRANCH_ID || "LOCAL-WAREHOUSE";
+const branchId = "LOCAL-WAREHOUSE";
 if (
   !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
   password.length < 10 ||
@@ -29,11 +29,6 @@ if (
         throw new Error(
           "Accounts already exist. Sign in as an administrator to create more; bootstrap does not overwrite accounts.",
         );
-      return Branch.findById(branchId);
-    })
-    .then((branch) => {
-      if (!branch)
-        throw new Error("ADMIN_BRANCH_ID does not match a configured branch.");
       return hashPassword(password);
     })
     .then((passwordHash) =>

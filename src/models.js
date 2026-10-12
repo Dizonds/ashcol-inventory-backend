@@ -146,17 +146,13 @@ export const Movement = mongoose.model(
 export const User = mongoose.model("User", userSchema);
 export const Session = mongoose.model("Session", sessionSchema);
 export const PartRequest = mongoose.model("PartRequest", requestSchema);
-export const Branch = mongoose.model(
-  "Branch",
+// Mobile fleet records live separately from the fixed Taguig warehouse.
+export const ServiceVan = mongoose.model(
+  "ServiceVan",
   new mongoose.Schema(
     {
       _id: String,
       name: { type: String, required: true },
-      branchType: {
-        type: String,
-        enum: ["WAREHOUSE", "SERVICE_VAN"],
-        default: "WAREHOUSE",
-      },
       plateNumber: { type: String, default: "" },
       driverId: { type: String, default: "" },
       driverName: { type: String, default: "" },
@@ -168,6 +164,7 @@ export const Branch = mongoose.model(
     },
     options,
   ),
+  "service_vans",
 );
 export const Brand = mongoose.model(
   "Brand",

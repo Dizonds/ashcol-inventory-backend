@@ -1,6 +1,6 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import { Product, Movement, Branch } from "../src/models.js";
+import { Product, Movement } from "../src/models.js";
 import { productData, checkQuantity, number } from "../src/helpers.js";
 
 // Explicit, all-or-nothing migration. No database migration runs automatically.
@@ -36,17 +36,7 @@ if (!branchId || !/^[A-Za-z0-9-]+$/.test(branchId)) {
               number(item.quantity, "Quantity");
               checkQuantity(item.quantity, item.unitOfMeasure);
             });
-            return Branch.updateOne(
-              { _id: branchId },
-              {
-                $setOnInsert: {
-                  name:
-                    process.env.LEGACY_BRANCH_NAME ||
-                    `${branchId} (imported warehouse)`,
-                },
-              },
-              { upsert: true, session },
-            );
+            return Promise.resolve();
           })
           .then(() => {
             // Sequential saves keep transaction behavior easy to inspect.

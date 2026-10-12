@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
-import { Product, Movement, Branch, PartRequest } from "../models.js";
+import { Product, Movement, ServiceVan, PartRequest } from "../models.js";
 import { manage, admin } from "../auth.js";
 import {
   branchScope,
@@ -249,7 +249,7 @@ router.post("/products/:id/restore", manage, (req, res, next) => {
     .then((item) => res.json(item))
     .catch(next);
 });
-// Transfers between two branches require admin; loading to or returning from a service van allows managers
+// Transfers between the fixed warehouse and a service vehicle allow managers.
 router.post("/transfers", manage, (req, res, next) => {
   if (req.user.role !== "ADMIN" && !req.body.isVanTransfer && !req.body.destinationId?.startsWith("VAN") && !req.body.branchId?.startsWith("VAN")) {
     return res.status(403).json({ error: "Administrator access required." });
@@ -264,13 +264,16 @@ router.post("/transfers", manage, (req, res, next) => {
       if (branchId === destinationId)
         fail("Choose a different destination branch.");
       return Promise.all([
-        Branch.findById(branchId),
-        Branch.findById(destinationId),
-      ]).then(([sourceBranch, destination]) => {
-        if (!destination) fail("Destination branch not found.", 404);
+        branchId === "LOCAL-WAREHOUSE"
+          ? Promise.resolve({})
+          : ServiceVan.findById(branchId),
+        destinationId === "LOCAL-WAREHOUSE"
+          ? Promise.resolve({})
+          : ServiceVan.findById(destinationId),
+      ]).then(([, destination]) => {
+        if (!destination) fail("Destination service vehicle not found.", 404);
         const isVanTransfer =
-          (sourceBranch && sourceBranch.branchType === "SERVICE_VAN") ||
-          destination.branchType === "SERVICE_VAN";
+          branchId !== "LOCAL-WAREHOUSE" || destinationId !== "LOCAL-WAREHOUSE";
         if (!isVanTransfer && req.user.role !== "ADMIN") {
           return res
             .status(403)
