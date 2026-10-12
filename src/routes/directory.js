@@ -115,13 +115,25 @@ router.patch("/service-vans/:id/status", (req, res, next) => {
 });
 // Assign driver / technician to a van (Managers & Admins)
 router.patch("/service-vans/:id/driver", manage, (req, res, next) => {
-  resolveDriver(req.body.driverId, req.body.driverName)
-    .then((driver) => ensureDriverAvailable(driver, req.params.id).then(() => driver))
-    .then((driver) => ServiceVan.findByIdAndUpdate(
-      req.params.id,
-      { $set: driver },
-      { new: true },
-    ))
+  ServiceVan.findById(req.params.id)
+    .then((van) => {
+      if (!van) fail("Service vehicle not found.", 404);
+      if (["ON_FIELD", "ARRIVED"].includes(van.status))
+        fail(
+          "The driver cannot be changed after the vehicle has been dispatched or has arrived on site.",
+          409,
+        );
+      return resolveDriver(req.body.driverId, req.body.driverName).then((driver) =>
+        ensureDriverAvailable(driver, req.params.id).then(() => driver),
+      );
+    })
+    .then((driver) =>
+      ServiceVan.findByIdAndUpdate(
+        req.params.id,
+        { $set: driver },
+        { new: true },
+      ),
+    )
     .then((item) => {
       if (!item) fail("Service vehicle not found.", 404);
       res.json(json(item));
@@ -208,8 +220,9 @@ router.post("/users", admin, (req, res, next) => {
   if (!/^[\p{L}][\p{L} .'-]{1,49}$/u.test(lastName))
     fail("Last name must contain 2-50 letters and valid name characters.");
   const fullName = `${firstName} ${lastName}`;
-  text(req.body.password, "Password");
-  const password = req.body.password;
+  const password = typeof req.body.password === "string" ? req.body.password : "";
+  if (!password.trim()) fail("Password is required.");
+  if (/\s/.test(password)) fail("Password cannot contain spaces.");
   if (password.length < 10) fail("Use at least 10 characters for passwords.");
   const role = text(req.body.role, "Role");
   if (!["ADMIN", "MANAGER", "EMPLOYEE"].includes(role)) fail("Choose a valid role.");

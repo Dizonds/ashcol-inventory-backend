@@ -3,7 +3,7 @@ import { hashPassword } from "../src/auth.js";
 import {
   Product,
   Movement,
-  Branch,
+  ServiceVan,
   Brand,
   Supplier,
   User,
@@ -21,7 +21,7 @@ async function resetAndSeed() {
   await Promise.all([
     Product.deleteMany({}),
     Movement.deleteMany({}),
-    Branch.deleteMany({}),
+    ServiceVan.deleteMany({}),
     Brand.deleteMany({}),
     Supplier.deleteMany({}),
     User.deleteMany({}),
@@ -49,24 +49,12 @@ async function resetAndSeed() {
   await Brand.insertMany(brandNames.map((name) => ({ name })));
   console.log(`Seeded ${brandNames.length} brands.`);
 
-  // 3. Seed Branches & Service Vans
-  const branches = [
-    {
-      _id: "LOCAL-WAREHOUSE",
-      name: "Main Taguig Warehouse",
-      branchType: "WAREHOUSE",
-      status: "AVAILABLE",
-    },
-    {
-      _id: "BRANCH-NORTH",
-      name: "Quezon City Service Hub",
-      branchType: "WAREHOUSE",
-      status: "AVAILABLE",
-    },
+  // 3. Seed service vans. The fixed Taguig warehouse is represented by
+  // the LOCAL-WAREHOUSE scope and is not a ServiceVan document.
+  const serviceVans = [
     {
       _id: "VAN-01",
       name: "Field Service Van Alpha",
-      branchType: "SERVICE_VAN",
       plateNumber: "NBD-1234",
       driverName: "Alex Rivera (Lead Tech)",
       status: "AVAILABLE",
@@ -74,14 +62,13 @@ async function resetAndSeed() {
     {
       _id: "VAN-02",
       name: "Field Service Van Bravo",
-      branchType: "SERVICE_VAN",
       plateNumber: "ABC-5678",
       driverName: "Danilo Santos (Senior Tech)",
       status: "ON_FIELD",
     },
   ];
-  await Branch.insertMany(branches);
-  console.log(`Seeded ${branches.length} facilities/vans.`);
+  await ServiceVan.insertMany(serviceVans);
+  console.log(`Seeded ${serviceVans.length} service vans.`);
 
   // 4. Seed Suppliers
   const suppliers = [

@@ -60,17 +60,18 @@ authRouter.post("/login", (req, res, next) => {
       .status(429)
       .json({ error: "Too many login attempts. Try again in 15 minutes." });
   let user;
+let password;
   Promise.resolve()
     .then(() => {
       const email = text(req.body.email, "Email").toLowerCase().trim();
-      const password = typeof req.body.password === "string" ? req.body.password.trim() : "";
-      if (!password) fail("Password is required.");
+      password = typeof req.body.password === "string" ? req.body.password : "";
+      if (!password.trim()) fail("Password is required.");
+      if (/\s/.test(password)) fail("Password cannot contain spaces.");
       return User.findOne({ email }).select("+passwordHash");
     })
     .then((found) => {
       user = found;
       if (!user) fail("Invalid email or password.", 401);
-      const password = typeof req.body.password === "string" ? req.body.password.trim() : "";
       return hashPassword(password, user.passwordHash.split(":")[0]);
     })
     .then((hash) => {

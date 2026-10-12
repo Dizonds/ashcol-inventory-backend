@@ -182,6 +182,34 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
     .then((item) => res.json(item))
     .catch(next);
 });
+// Employees record materials consumed from their assigned service van.
+router.post("/service-vans/:vanId/consume", (req, res, next) => {
+  const quantity = number(req.body.quantity, "Quantity used");
+  if (!quantity) fail("Quantity used must be positive.");
+  const workOrderId = text(req.body.workOrderId, "Job / work-order number");
+  const notes = text(req.body.notes, "Notes");
+
+  branchScope(req, req.params.vanId)
+    .then((branchId) =>
+      transaction((session) =>
+        changeStock(
+          req.body.productId,
+          branchId,
+          -quantity,
+          {
+            movementType: "JOB_CONSUMPTION",
+            reason: `Client Installation / Site Project: ${notes}`,
+            workOrderId,
+            referenceId: generateTicket("JOB"),
+          },
+          req.user,
+          session,
+        ).then(json),
+      ),
+    )
+    .then((item) => res.json(item))
+    .catch(next);
+});
 router.delete("/products/:id", manage, (req, res, next) => {
   branchScope(req, req.query.branchId)
     .then((branchId) =>
@@ -270,8 +298,26 @@ router.post("/transfers", manage, (req, res, next) => {
         destinationId === "LOCAL-WAREHOUSE"
           ? Promise.resolve({})
           : ServiceVan.findById(destinationId),
-      ]).then(([, destination]) => {
+      ]).then(([sourceVan, destination]) => {
         if (!destination) fail("Destination service vehicle not found.", 404);
+        if (
+          branchId !== "LOCAL-WAREHOUSE" &&
+          sourceVan?.status === "ON_FIELD" &&
+          !req.body.overrideOnField
+        ) {
+          fail(
+            "This vehicle is currently on field. Mark the transfer as an emergency override before unloading it.",
+            409,
+          );
+        }
+        if (
+          branchId !== "LOCAL-WAREHOUSE" &&
+          sourceVan?.status === "ON_FIELD" &&
+          req.body.overrideOnField &&
+          !/^Emergency:/i.test(reason)
+        ) {
+          fail("Emergency unloads must include a reason starting with \"Emergency:\".");
+        }
         const isVanTransfer =
           branchId !== "LOCAL-WAREHOUSE" || destinationId !== "LOCAL-WAREHOUSE";
         if (!isVanTransfer && req.user.role !== "ADMIN") {
@@ -357,7 +403,27 @@ router.get("/movements", (req, res, next) => {
   );
   branchScope(req, req.query.branchId)
     .then((branchId) => {
-      const filter = { branchId };
+      const scopeIds = [branchId];
+      if (branchId === "LOCAL-WAREHOUSE") {
+        return ServiceVan.find({
+          ...(req.user.role === "EMPLOYEE"
+            ? {
+                $or: [
+                  { driverId: String(req.user._id) },
+                  { driverName: req.user.fullName },
+                  { driverName: `${req.user.fullName} (${req.user.role})` },
+                ],
+              }
+            : {}),
+        }).then((assignedVans) => {
+          assignedVans.forEach((van) => scopeIds.push(van._id));
+          return scopeIds;
+        });
+      }
+      return scopeIds;
+    })
+    .then((scopeIds) => {
+      const filter = { branchId: scopeIds.length === 1 ? scopeIds[0] : { $in: scopeIds } };
       if (req.query.type)
         filter.movementType = text(req.query.type, "Movement type");
       if (req.query.search) {

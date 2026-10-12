@@ -13,7 +13,7 @@ import {
   Product,
   Movement,
   User,
-  Branch,
+  ServiceVan,
   PartRequest,
   Session,
 } from "../src/models.js";
@@ -24,7 +24,7 @@ let employeeToken;
 let managerToken;
 const http = supertest(app);
 const branchId = "LOCAL-WAREHOUSE";
-const otherBranch = "LOCAL-SECOND";
+const serviceVanId = "VAN-TEST";
 let sequence = 0;
 function call(method, path, data, token = adminToken) {
   const request = http[method]("/api" + path).set(
@@ -80,7 +80,7 @@ before(async () => {
   });
   await mongoose.connect(database.getUri(), { dbName: "inventory_test" });
   await initializeDatabase();
-  await Branch.create({ _id: otherBranch, name: "Second test branch" });
+  await ServiceVan.create({ _id: serviceVanId, name: "Test Service Van" });
   const passwordHash = await hashPassword("Test-password-2026");
   await User.insertMany([
     {
@@ -105,6 +105,11 @@ before(async () => {
       passwordHash,
     },
   ]);
+  const employee = await User.findOne({ email: "employee@example.test" });
+  await ServiceVan.updateOne(
+    { _id: serviceVanId },
+    { driverId: String(employee._id), driverName: employee.fullName },
+  );
   for (const email of ["admin", "employee", "manager"]) {
     const response = await http
       .post("/api/auth/login")
@@ -136,14 +141,14 @@ test("requires a valid password and token", async () => {
 
 test("enforces branch ownership and write permissions on the API", async () => {
   assert.equal(
-    (await call("get", "/products", { branchId: otherBranch }, employeeToken))
+    (await call("get", "/products", { branchId: "UNKNOWN-SCOPE" }, employeeToken))
       .status,
-    403,
+    404,
   );
   assert.equal(
-    (await call("get", "/movements", { branchId: otherBranch }, managerToken))
+    (await call("get", "/movements", { branchId: "UNKNOWN-SCOPE" }, managerToken))
       .status,
-    403,
+    404,
   );
   assert.equal(
     (await call("post", "/products", product(), employeeToken)).status,
@@ -166,7 +171,7 @@ test("keeps zero reorder levels and rejects duplicate SKUs within a branch", asy
     409,
   );
   assert.equal(
-    (await call("post", "/products", { ...data, branchId: otherBranch }))
+    (await call("post", "/products", { ...data, branchId: serviceVanId }))
       .status,
     201,
   );
@@ -378,14 +383,14 @@ test("transfers save two linked movements and preserve the combined quantity", a
   const response = await call("post", "/transfers", {
     branchId,
     productId: item.id,
-    destinationId: otherBranch,
+    destinationId: serviceVanId,
     quantity: 2,
     reason: "Transfer receipt 001",
   });
   assert.equal(response.status, 201, JSON.stringify(response.body));
   assert.equal((await Product.findById(item.id)).quantity, 3);
   assert.equal(
-    (await Product.findOne({ sku: item.sku, branchId: otherBranch })).quantity,
+    (await Product.findOne({ sku: item.sku, branchId: serviceVanId })).quantity,
     2,
   );
   const records = await Movement.find({
@@ -402,7 +407,7 @@ test("a destination mismatch rolls back both sides of a transfer", async () => {
   const item = await create();
   await create({
     sku: item.sku,
-    branchId: otherBranch,
+    branchId: serviceVanId,
     name: "Different item",
   });
   assert.equal(
@@ -410,7 +415,7 @@ test("a destination mismatch rolls back both sides of a transfer", async () => {
       await call("post", "/transfers", {
         branchId,
         productId: item.id,
-        destinationId: otherBranch,
+        destinationId: serviceVanId,
         quantity: 2,
         reason: "Mismatch",
       })
@@ -418,6 +423,37 @@ test("a destination mismatch rolls back both sides of a transfer", async () => {
     409,
   );
   assert.equal((await Product.findById(item.id)).quantity, 5);
+});
+
+test("assigned employees can record material used from their service van", async () => {
+  const item = await create({ branchId: serviceVanId, quantity: 5 });
+  const response = await call(
+    "post",
+    `/service-vans/${serviceVanId}/consume`,
+    {
+      productId: item.id,
+      quantity: 2,
+      workOrderId: "JOB-2026-001",
+      notes: "Installed during client site repair",
+    },
+    employeeToken,
+  );
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  assert.equal(response.body.quantity, 3);
+  const movement = await Movement.findOne({
+    productId: item.id,
+    movementType: "JOB_CONSUMPTION",
+  });
+  assert.equal(movement.workOrderId, "JOB-2026-001");
+  assert.equal(movement.quantityDelta, -2);
+  const ledger = await call(
+    "get",
+    "/movements",
+    { branchId, search: "JOB-2026-001" },
+    employeeToken,
+  );
+  assert.equal(ledger.status, 200);
+  assert.equal(ledger.body.total, 1);
 });
 
 test("archiving requires zero stock and no open requests; restore preserves identity", async () => {
@@ -504,22 +540,13 @@ test("logout and expired sessions are rejected by the server", async () => {
   assert.equal((await call("get", "/auth/me", {}, managerToken)).status, 401);
 });
 
-test("administrator can configure branches and real employee accounts", async () => {
-  assert.equal(
-    (
-      await call("post", "/branches", {
-        id: "LOCAL-THIRD",
-        name: "Third branch",
-      })
-    ).status,
-    201,
-  );
+test("administrator can create accounts for the Taguig warehouse", async () => {
   const response = await call("post", "/users", {
     email: "new@example.test",
     password: "New-password-2026",
     fullName: "New Employee",
     role: "EMPLOYEE",
-    branchId: "LOCAL-THIRD",
+    branchId,
   });
   assert.equal(response.status, 201);
   assert.equal(response.body.passwordHash, undefined);
@@ -527,11 +554,15 @@ test("administrator can configure branches and real employee accounts", async ()
     .post("/api/auth/login")
     .send({ email: "new@example.test", password: "New-password-2026" });
   assert.equal(login.status, 200);
-  const branches = await call("get", "/branches", {}, login.body.token);
-  assert.deepEqual(
-    branches.body.map((branch) => branch.id),
-    ["LOCAL-THIRD"],
-  );
+  assert.equal(login.body.user.branchId, branchId);
+  const spaced = await call("post", "/users", {
+    email: "spaced@example.test",
+    password: "Pa ss  word",
+    fullName: "Spaced Password",
+    role: "EMPLOYEE",
+    branchId,
+  });
+  assert.equal(spaced.status, 400);
 });
 
 test("legacy migration assigns explicit ownership without inventing historical balances", async () => {

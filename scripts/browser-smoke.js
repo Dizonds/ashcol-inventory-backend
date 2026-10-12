@@ -9,7 +9,7 @@ import { chromium } from "playwright-core";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
 import app from "../src/app.js";
 import { initializeDatabase } from "../src/setup.js";
-import { User, Branch, Product } from "../src/models.js";
+import { User, Product } from "../src/models.js";
 import { hashPassword } from "../src/auth.js";
 
 let database, server, browser;
@@ -20,7 +20,6 @@ try {
   });
   await mongoose.connect(database.getUri(), { dbName: "browser_smoke" });
   await initializeDatabase();
-  await Branch.create({ _id: "LOCAL-SECOND", name: "Second Demo Branch" });
   await User.create({
     email: "review@example.test",
     fullName: "Inventory Reviewer",
