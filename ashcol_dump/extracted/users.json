@@ -1,0 +1,35 @@
+[
+  {
+    "_id": "6ac752c68f3a0bfbf276e9a3",
+    "fullName": "Admin Master",
+    "email": "hatdog@hat.com",
+    "role": "ADMIN",
+    "__v": 0,
+    "createdAt": "2026-10-08T08:22:30.425Z",
+    "updatedAt": "2026-10-08T08:22:30.425Z",
+    "branchId": "LOCAL-WAREHOUSE",
+    "passwordHash": "22f075e1fa0e9c6386e0102504a12036:b30a7ede9e23a6579df236190b965647528e40572092cb5758da3f947edc00f02c4c0063e33a31fe52359ea7bd60bcfb8fe8141dc765eb716872083b60e4d5e5"
+  },
+  {
+    "_id": "6ac752c68f3a0bfbf276e9a4",
+    "fullName": "Warehouse Manager",
+    "email": "manager@ashcol.com",
+    "role": "MANAGER",
+    "__v": 0,
+    "createdAt": "2026-10-08T08:22:30.426Z",
+    "updatedAt": "2026-10-08T08:22:30.426Z",
+    "branchId": "LOCAL-WAREHOUSE",
+    "passwordHash": "9e8fb8642e8170fc654ce5a547981f9e:1ce3f16004a0ad99f2061cea7875fdbe34d549c215399c0fe28abd9b94205ef5fd7ba5f4418e62e206ddeeddd5e77335870ffb82cbb59558841ee3c80f2e0744"
+  },
+  {
+    "_id": "6ac752c68f3a0bfbf276e9a5",
+    "fullName": "Field Technician",
+    "email": "technician@ashcol.com",
+    "role": "EMPLOYEE",
+    "__v": 0,
+    "createdAt": "2026-10-08T08:22:30.426Z",
+    "updatedAt": "2026-10-08T08:22:30.426Z",
+    "branchId": "LOCAL-WAREHOUSE",
+    "passwordHash": "0456331d8d42bd792988bd6442d353bd:3cf76cfe9c44a37506ee190842e3e9f8f58d8424b33c1df2df738707dddef5f34000e5c2aaa05b522c3697c4badf3f69be2b631af06389cc0f20dd713b6b8bc0"
+  }
+]

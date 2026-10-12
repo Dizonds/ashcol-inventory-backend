@@ -1,0 +1,100 @@
+[
+  {
+    "_id": "6ab79b252471ce6e63135ad5",
+    "name": "Carrier",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.769Z",
+    "updatedAt": "2026-09-26T10:15:01.769Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ad6",
+    "name": "Daikin",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ad7",
+    "name": "Panasonic",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ad8",
+    "name": "LG",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ad9",
+    "name": "Kolin",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ada",
+    "name": "Samsung",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135adb",
+    "name": "Mitsubishi",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135adc",
+    "name": "Midea",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135add",
+    "name": "Gree",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ade",
+    "name": "TCL",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135adf",
+    "name": "Hitachi",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ae0",
+    "name": "Toshiba",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.771Z",
+    "updatedAt": "2026-09-26T10:15:01.771Z"
+  },
+  {
+    "_id": "6ab79b252471ce6e63135ae1",
+    "name": "Generic Parts",
+    "__v": 0,
+    "createdAt": "2026-09-26T10:15:01.772Z",
+    "updatedAt": "2026-09-26T10:15:01.772Z"
+  },
+  {
+    "_id": "6ab2b2b8be9b2b3a647c5445",
+    "name": "Samsungs",
+    "createdAt": "2026-09-22T16:54:16.452Z",
+    "updatedAt": "2026-09-22T16:54:16.452Z",
+    "__v": 0
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "_id": "6ab3e84fcaee8a4af4f28fba",
+    "serialNumber": "CAR-2024-8841",
+    "brand": "Carrier",
+    "modelName": "Carrier Optima Inverter 1.5 HP",
+    "capacity": "1.5 HP",
+    "customerName": "Juan Dela Cruz",
+    "branch": "Taguig",
+    "installationDate": "2024-03-15",
+    "serviceType": "Preventive Maintenance",
+    "reportedIssue": "Weak airflow and musty odor",
+    "diagnosis": "Heavy dust buildup on blower wheel and evaporator coil",
+    "resolution": "Completed pressurized chemical wash and cleared drainage tray",
+    "servicedBy": "Rico Santos",
+    "__v": 0,
+    "createdAt": "2026-09-23T14:55:11.155Z",
+    "updatedAt": "2026-09-23T14:55:11.155Z"
+  },
+  {
+    "_id": "6ab3e84fcaee8a4af4f28fbb",
+    "serialNumber": "DAI-2023-1102",
+    "brand": "Daikin",
+    "modelName": "Daikin D-Smart King 2.0 HP",
+    "capacity": "2.0 HP",
+    "customerName": "Maria Santos",
+    "branch": "Silang",
+    "installationDate": "2023-08-20",
+    "serviceType": "Repair",
+    "reportedIssue": "Error code U0 refrigerant leak suspected",
+    "diagnosis": "Flare nut leak on suction service valve",
+    "resolution": "Re-flared copper connection, nitrogen test, evacuated and refilled R32",
+    "servicedBy": "Arnel Mendoza",
+    "__v": 0,
+    "createdAt": "2026-09-23T14:55:11.155Z",
+    "updatedAt": "2026-09-23T14:55:11.155Z"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "_id": "LOCAL-WAREHOUSE",
+    "__v": 0,
+    "branchType": "WAREHOUSE",
+    "createdAt": "2026-10-12T08:25:08.655Z",
+    "driverId": "",
+    "driverName": "",
+    "name": "Main Warehouse",
+    "plateNumber": "",
+    "status": "AVAILABLE",
+    "updatedAt": "2026-10-12T08:25:08.655Z"
+  }
+]
