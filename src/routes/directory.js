@@ -4,8 +4,62 @@ import { admin, manage, hashPassword } from "../auth.js";
 import { text, fail, json } from "../helpers.js";
 
 const router = Router();
+
+function isAssignedToUser(van, user) {
+  return (
+    van.driverId === String(user._id) ||
+    van.driverName === user.fullName ||
+    van.driverName === `${user.fullName} (${user.role})`
+  );
+}
+
+function resolveDriver(driverId, driverName) {
+  const id = text(driverId || "", "Driver", false);
+  const name = text(driverName || "", "Driver", false);
+  if (!id && !name) return Promise.resolve({ driverId: "", driverName: "" });
+  const lookup = id
+    ? User.findById(id)
+    : User.findOne({
+        $or: [
+          { fullName: name },
+          { fullName: name.replace(/\s+\([^)]*\)$/, "") },
+        ],
+      });
+  return lookup.then((user) => {
+    if (!user) fail("Selected driver/technician was not found.", 404);
+    return { driverId: String(user._id), driverName: user.fullName };
+  });
+}
+
+function ensureDriverAvailable(driver, vehicleId) {
+  if (!driver.driverId) return Promise.resolve();
+  return ServiceVan.findOne({
+    _id: { $ne: vehicleId },
+    $or: [
+      { driverId: driver.driverId },
+      { driverName: driver.driverName },
+      { driverName: `${driver.driverName} (EMPLOYEE)` },
+      { driverName: `${driver.driverName} (MANAGER)` },
+      { driverName: `${driver.driverName} (ADMIN)` },
+    ],
+  }).then((existing) => {
+    if (existing)
+      fail(`${driver.driverName} is already assigned to ${existing.name}.`, 409);
+  });
+}
+
 router.get("/service-vans", (req, res, next) => {
-  ServiceVan.find()
+  const filter =
+    req.user.role === "EMPLOYEE"
+      ? {
+          $or: [
+            { driverId: String(req.user._id) },
+            { driverName: req.user.fullName },
+            { driverName: `${req.user.fullName} (${req.user.role})` },
+          ],
+        }
+      : {};
+  ServiceVan.find(filter)
     .sort({ name: 1 })
     .then((items) => res.json(items.map(json)))
     .catch(next);
@@ -15,19 +69,20 @@ router.post("/service-vans", admin, (req, res, next) => {
   if (!/^[A-Za-z0-9-]+$/.test(id))
     fail("Use letters, numbers and hyphens for vehicle IDs.");
   const plateNumber = text(req.body.plateNumber || "", "Plate number", false);
-  const driverName = text(req.body.driverName || "", "Driver / Technician", false);
   const status = ["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"].includes(
     req.body.status,
   )
     ? req.body.status
     : "AVAILABLE";
-  ServiceVan.create({
-    _id: id,
-    name: text(req.body.name, "Vehicle name"),
-    plateNumber,
-    driverName,
-    status,
-  })
+  resolveDriver(req.body.driverId, req.body.driverName)
+    .then((driver) => ensureDriverAvailable(driver, id).then(() => driver))
+    .then((driver) => ServiceVan.create({
+      _id: id,
+      name: text(req.body.name, "Vehicle name"),
+      plateNumber,
+      ...driver,
+      status,
+    }))
     .then((item) => res.status(201).json(json(item)))
     .catch(next);
 });
@@ -39,6 +94,8 @@ router.patch("/service-vans/:id/status", (req, res, next) => {
   ServiceVan.findById(req.params.id)
     .then((van) => {
       if (!van) fail("Service vehicle not found.", 404);
+      if (req.user.role === "EMPLOYEE" && !isAssignedToUser(van, req.user))
+        fail("Employees can only update their assigned service vehicle.", 403);
       if (
         ["ON_FIELD", "ARRIVED"].includes(status) &&
         !van.driverName
@@ -58,12 +115,13 @@ router.patch("/service-vans/:id/status", (req, res, next) => {
 });
 // Assign driver / technician to a van (Managers & Admins)
 router.patch("/service-vans/:id/driver", manage, (req, res, next) => {
-  const driverName = text(req.body.driverName || "", "Driver name", false);
-  ServiceVan.findByIdAndUpdate(
-    req.params.id,
-    { $set: { driverName } },
-    { new: true },
-  )
+  resolveDriver(req.body.driverId, req.body.driverName)
+    .then((driver) => ensureDriverAvailable(driver, req.params.id).then(() => driver))
+    .then((driver) => ServiceVan.findByIdAndUpdate(
+      req.params.id,
+      { $set: driver },
+      { new: true },
+    ))
     .then((item) => {
       if (!item) fail("Service vehicle not found.", 404);
       res.json(json(item));

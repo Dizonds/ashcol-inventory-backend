@@ -149,21 +149,28 @@ export const PartRequest = mongoose.model("PartRequest", requestSchema);
 // Mobile fleet records live separately from the fixed Taguig warehouse.
 export const ServiceVan = mongoose.model(
   "ServiceVan",
-  new mongoose.Schema(
-    {
-      _id: String,
-      name: { type: String, required: true },
-      plateNumber: { type: String, default: "" },
-      driverId: { type: String, default: "" },
-      driverName: { type: String, default: "" },
-      status: {
-        type: String,
-        enum: ["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"],
-        default: "AVAILABLE",
+  (() => {
+    const schema = new mongoose.Schema(
+      {
+        _id: String,
+        name: { type: String, required: true },
+        plateNumber: { type: String, default: "" },
+        driverId: { type: String, default: "" },
+        driverName: { type: String, default: "" },
+        status: {
+          type: String,
+          enum: ["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"],
+          default: "AVAILABLE",
+        },
       },
-    },
-    options,
-  ),
+      options,
+    );
+    schema.index(
+      { driverId: 1 },
+      { unique: true, partialFilterExpression: { driverId: { $gt: "" } } },
+    );
+    return schema;
+  })(),
   "service_vans",
 );
 export const Brand = mongoose.model(

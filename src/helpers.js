@@ -55,6 +55,13 @@ export function branchScope(req, branchId) {
   if (id === "LOCAL-WAREHOUSE") return Promise.resolve(id);
   return ServiceVan.findById(id).then((van) => {
     if (!van) fail("Service vehicle not found.", 404);
+    if (
+      req.user.role === "EMPLOYEE" &&
+      van.driverId !== String(req.user._id) &&
+      van.driverName !== req.user.fullName &&
+      van.driverName !== `${req.user.fullName} (${req.user.role})`
+    )
+      fail("Employees can only access their assigned service vehicle.", 403);
     return id;
   });
 }
