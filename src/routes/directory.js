@@ -92,21 +92,39 @@ router.get("/suppliers", (req, res, next) => {
 });
 router.post("/suppliers", manage, (req, res, next) => {
   const name = text(req.body.name, "Supplier name");
-  Supplier.findOneAndUpdate(
-    { name },
-    {
-      $set: {
-        name,
-        contactPerson: text(req.body.contactPerson || "", "Contact person", false),
-        phone: text(req.body.phone || "", "Phone", false),
-        email: text(req.body.email || "", "Email", false),
-        address: text(req.body.address || "", "Address", false),
-        terms: text(req.body.terms || "", "Terms", false),
-      },
-    },
-    { upsert: true, new: true },
-  )
-    .then((item) => res.status(201).json(json(item)))
+  const updateData = {
+    name,
+    contactPerson: text(req.body.contactPerson || "", "Contact person", false),
+    phone: text(req.body.phone || "", "Phone", false),
+    email: text(req.body.email || "", "Email", false),
+    address: text(req.body.address || "", "Address", false),
+    terms: text(req.body.terms || "", "Terms", false),
+  };
+
+  const id = req.body.id;
+  if (id) {
+    Supplier.findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .then((item) => {
+        if (!item) fail("Supplier not found.", 404);
+        res.json(json(item));
+      })
+      .catch(next);
+  } else {
+    Supplier.findOneAndUpdate(
+      { name },
+      { $set: updateData },
+      { upsert: true, new: true },
+    )
+      .then((item) => res.status(201).json(json(item)))
+      .catch(next);
+  }
+});
+router.delete("/suppliers/:id", manage, (req, res, next) => {
+  Supplier.findByIdAndDelete(req.params.id)
+    .then((item) => {
+      if (!item) fail("Supplier not found.", 404);
+      res.json({ success: true, message: "Supplier deleted." });
+    })
     .catch(next);
 });
 router.get("/users", manage, (req, res, next) => {

@@ -3,22 +3,26 @@ import { Product, Supplier } from "../src/models.js";
 
 async function run() {
   await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory");
-  const prods = await Product.find();
-  const names = Array.from(new Set(prods.map((p) => p.supplier).filter(Boolean)));
-  for (const name of names) {
+  const figmaSuppliers = [
+    { name: "Carrier Air Conditioning Philippines, Inc.", contactPerson: "Michael Santos", phone: "+63 917 845 2310", email: "msantos@carrierph.com", terms: "Net 30 Days", address: "Pasig City, Metro Manila" },
+    { name: "Daikin Philippines Corporation", contactPerson: "Jennifer Lim", phone: "+63 918 334 5621", email: "jlim@daikin.com.ph", terms: "Net 30 Days", address: "Alabang, Muntinlupa City" },
+    { name: "Concepcion-Carrier Air Conditioning Co.", contactPerson: "Robert Cruz", phone: "+63 917 622 1845", email: "rcruz@concepcioncarrier.com", terms: "Net 30 Days", address: "Balintawak, Quezon City" },
+    { name: "LG Electronics Philippines Inc.", contactPerson: "Daniel Reyes", phone: "+63 919 776 9502", email: "dreyes@lge.com", terms: "Cash on Delivery", address: "Taguig City, Metro Manila" },
+    { name: "Mitsubishi Electric Asia Pte. Ltd. (PH Representative)", contactPerson: "Karen Velasco", phone: "+63 917 558 7720", email: "kvelasco@mitsubishielectric.com", terms: "Net 60 Days", address: "Makati City, Metro Manila" },
+    { name: "CoolSource HVAC Trading", contactPerson: "Anthony Dela Torre", phone: "+63 918 923 4115", email: "sales@coolsourcehvac.ph", terms: "Net 15 Days", address: "Dasma, Cavite" },
+    { name: "Panasonic Manufacturing Philippines Corp.", contactPerson: "Eduardo Ramos", phone: "+63 917 332 9981", email: "eramos@panasonic.com.ph", terms: "Net 30 Days", address: "Taytay, Rizal" },
+    { name: "Koppel, Inc.", contactPerson: "Maricel Tan", phone: "+63 918 445 7712", email: "mtan@koppel.ph", terms: "Net 30 Days", address: "Paranaque City, Metro Manila" },
+    { name: "Gree Philippines Distribution", contactPerson: "Raymond Bautista", phone: "+63 919 556 1234", email: "sales@gree.ph", terms: "Cash on Delivery", address: "Quezon City, Metro Manila" },
+    { name: "Midea HVAC Solutions Philippines", contactPerson: "Katrina Gonzaga", phone: "+63 917 667 8901", email: "kgonzaga@midea.com.ph", terms: "Net 45 Days", address: "Mandaluyong City, Metro Manila" },
+    { name: "TCL Air Conditioner Philippines", contactPerson: "Patrick David", phone: "+63 918 778 4567", email: "pdavid@tcl.com.ph", terms: "Net 30 Days", address: "BGC, Taguig City" },
+    { name: "Samsung Electronics Philippines", contactPerson: "Christine Flores", phone: "+63 917 889 0123", email: "cflores@samsung.com.ph", terms: "Net 60 Days", address: "Taguig City, Metro Manila" }
+  ];
+
+  for (const s of figmaSuppliers) {
     await Supplier.findOneAndUpdate(
-      { name },
-      {
-        $setOnInsert: {
-          name,
-          contactPerson: "Corporate Sales Rep",
-          phone: "+63 2 8888 0000",
-          email: `sales@${name.toLowerCase().replace(/[^a-z0-9]/g, "") || "vendor"}.com.ph`,
-          address: "Metro Manila, Philippines",
-          terms: "30 Days Net",
-        },
-      },
-      { upsert: true },
+      { name: s.name },
+      { $set: s },
+      { upsert: true }
     );
   }
 
