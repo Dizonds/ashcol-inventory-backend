@@ -401,6 +401,13 @@ router.get("/movements", (req, res, next) => {
     100,
     Math.max(1, Math.floor(Number(req.query.pageSize) || 15)),
   );
+  const sortBy = String(req.query.sort || "newest");
+  const sort = {
+    newest: { createdAt: -1, _id: -1 },
+    oldest: { createdAt: 1, _id: 1 },
+    az: { itemName: 1, sku: 1, createdAt: -1, _id: -1 },
+    za: { itemName: -1, sku: -1, createdAt: -1, _id: -1 },
+  }[sortBy] || { createdAt: -1, _id: -1 };
   branchScope(req, req.query.branchId)
     .then((branchId) => {
       const scopeIds = [branchId];
@@ -442,7 +449,7 @@ router.get("/movements", (req, res, next) => {
       }
       return Promise.all([
         Movement.find(filter)
-          .sort({ createdAt: -1, _id: -1 })
+          .sort(sort)
           .skip((page - 1) * pageSize)
           .limit(pageSize),
         Movement.countDocuments(filter),
