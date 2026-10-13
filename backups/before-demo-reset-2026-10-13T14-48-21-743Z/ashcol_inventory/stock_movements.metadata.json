@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"branchId":{"$numberInt":"1"},"createdAt":{"$numberInt":"-1"}},"name":"branchId_1_createdAt_-1","background":true}],"uuid":"284fa41118dd46cb9386efa5659c6047","collectionName":"stock_movements","type":"collection"}

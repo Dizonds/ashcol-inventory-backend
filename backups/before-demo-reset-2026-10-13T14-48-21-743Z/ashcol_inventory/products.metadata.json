@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"branchId":{"$numberInt":"1"},"sku":{"$numberInt":"1"}},"name":"branchId_1_sku_1","background":true,"unique":true}],"uuid":"8e69842371d44eacb0381cc0771081ed","collectionName":"products","type":"collection"}

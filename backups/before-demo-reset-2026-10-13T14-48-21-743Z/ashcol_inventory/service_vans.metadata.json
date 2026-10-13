@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"driverId":{"$numberInt":"1"}},"name":"driverId_1","background":true,"unique":true,"partialFilterExpression":{"driverId":{"$gt":""}}}],"uuid":"0401f6824e414b5ca73e1c64cb07b9e9","collectionName":"service_vans","type":"collection"}

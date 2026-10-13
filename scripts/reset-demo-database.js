@@ -587,6 +587,97 @@ async function resetAndSeed() {
     });
   }
 
+  // Add explicit supplier restock entries so the demo ledger contains both
+  // STOCK_IN and STOCK_OUT activity for the dashboard movement trend.
+  const panasonicItem = createdProducts.find(
+    (p) => p.sku === "PANA-1.5HP-XPU" && p.branchId === "LOCAL-WAREHOUSE",
+  );
+  if (panasonicItem) {
+    movements.push({
+      productId: panasonicItem._id,
+      branchId: panasonicItem.branchId,
+      sku: panasonicItem.sku,
+      itemName: panasonicItem.name,
+      unitOfMeasure: panasonicItem.unitOfMeasure,
+      movementType: "STOCK_IN",
+      quantityDelta: 4,
+      beforeQuantity: 2,
+      afterQuantity: 6,
+      referenceId: "STI2603",
+      reason: "Supplier Delivery / Restock: Panasonic dealer replenishment",
+      performedBy: String(adminUser._id || "system"),
+      performedByName: adminUser.fullName,
+      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+    });
+  }
+
+  const r32Item = createdProducts.find(
+    (p) => p.sku === "FRN-R32-9.5KG" && p.branchId === "LOCAL-WAREHOUSE",
+  );
+  if (r32Item) {
+    movements.push({
+      productId: r32Item._id,
+      branchId: r32Item.branchId,
+      sku: r32Item.sku,
+      itemName: r32Item.name,
+      unitOfMeasure: r32Item.unitOfMeasure,
+      movementType: "STOCK_IN",
+      quantityDelta: 5,
+      beforeQuantity: 10,
+      afterQuantity: 15,
+      referenceId: "STI2604",
+      reason: "Supplier Delivery / Restock: Refrigerant replenishment",
+      performedBy: String(adminUser._id || "system"),
+      performedByName: adminUser.fullName,
+      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+    });
+  }
+
+  // Add a believable 30-day rhythm of warehouse activity so dashboard trends
+  // look like an operating inventory system instead of a nearly empty demo.
+  const activitySkus = [
+    "CAR-1.0HP-CRY",
+    "CAR-1.5HP-INV",
+    "DAIK-1.0HP-INV",
+    "PANA-1.5HP-XPU",
+    "FRN-R410A-11.3",
+    "FRN-R32-9.5KG",
+    "MAT-CAP-35-5MFD",
+    "CP-PIPE-1/4",
+  ];
+  let activityTicket = 2605;
+  for (let daysAgo = 1; daysAgo <= 30; daysAgo += 1) {
+    const dayItems = activitySkus
+      .map((sku) => createdProducts.find((p) => p.sku === sku && p.branchId === "LOCAL-WAREHOUSE"))
+      .filter(Boolean);
+    const first = dayItems[(daysAgo * 3) % dayItems.length];
+    const second = dayItems[(daysAgo * 5 + 1) % dayItems.length];
+    const dayDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+    const addMovement = (item, delta, type, reason, offsetHours) => {
+      if (!item) return;
+      movements.push({
+        productId: item._id,
+        branchId: item.branchId,
+        sku: item.sku,
+        itemName: item.name,
+        unitOfMeasure: item.unitOfMeasure,
+        movementType: type,
+        quantityDelta: delta,
+        beforeQuantity: Math.max(0, item.quantity - delta),
+        afterQuantity: Math.max(0, item.quantity),
+        referenceId: `${type === "STOCK_IN" ? "STI" : "STO"}${activityTicket++}`,
+        reason,
+        performedBy: String(adminUser._id || "system"),
+        performedByName: adminUser.fullName,
+        createdAt: new Date(dayDate.getTime() + offsetHours * 60 * 60 * 1000),
+      });
+    };
+    addMovement(first, 2 + (daysAgo % 4), "STOCK_IN", "Supplier delivery / scheduled replenishment", 9);
+    if (daysAgo % 2 === 0) {
+      addMovement(second, -(1 + (daysAgo % 3)), "STOCK_OUT", "Client installation / service dispatch", 15);
+    }
+  }
+
   // Seed sample van transfer
   const vanItem = createdProducts.find(
     (p) => p.branchId === "VAN-01" && p.sku === "CP-PIPE-1/4",
