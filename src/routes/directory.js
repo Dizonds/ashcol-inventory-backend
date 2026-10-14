@@ -102,7 +102,7 @@ router.delete("/service-vans/:id", admin, (req, res, next) => {
       fail("Vehicle is busy. Unassign its driver and set it to Available before deleting it.", 409);
     if (await Product.exists({ branchId: van._id, quantity: { $gt: 0 } }).session(session))
       fail("Vehicle is busy. Return all stock to the warehouse before deleting it.", 409);
-    if (await PartRequest.exists({ branchId: van._id, status: { $in: ["PENDING", "APPROVED"] } }).session(session))
+    if (await PartRequest.exists({ branchId: van._id, status: { $in: ["PENDING", "APPROVED"] }, deletedAt: { $exists: false } }).session(session))
       fail("Vehicle is busy. Resolve its open material requests before deleting it.", 409);
     await ServiceVan.deleteOne({ _id: van._id }, { session });
   })

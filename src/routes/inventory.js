@@ -33,7 +33,7 @@ router.get("/products", (req, res, next) => {
         Product.find({ branchId, archived: req.query.archived === "true" }).sort({
           name: 1,
         }),
-        PartRequest.find({ branchId, status: "APPROVED" }),
+        PartRequest.find({ branchId, status: "APPROVED", deletedAt: { $exists: false } }),
       ]),
     )
     .then(([items, approvedRequests]) => {
@@ -254,6 +254,7 @@ router.delete("/products/:id", manage, (req, res, next) => {
             return PartRequest.countDocuments({
               productId: item._id,
               status: { $in: ["PENDING", "APPROVED"] },
+              deletedAt: { $exists: false },
             }).session(session);
           })
           .then((count) => {

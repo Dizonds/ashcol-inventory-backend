@@ -135,6 +135,121 @@ async function removalAccount(label, role = "EMPLOYEE") {
   return response.body;
 }
 
+test("technicians only see their own requests, including completed and deleted history", async () => {
+  const item = await create();
+  const own = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, employeeToken);
+  const other = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, managerToken);
+  await call("patch", `/requests/${own.body.id}`, { branchId, status: "APPROVED" });
+  await call("patch", `/requests/${own.body.id}`, { branchId, status: "FULFILLED" });
+  const employee = (await call("get", "/auth/me", {}, employeeToken)).body;
+  const listed = await call("get", "/requests", { branchId }, employeeToken);
+  assert.equal(listed.status, 200);
+  assert.ok(listed.body.every(entry => entry.requestedBy === employee.id));
+  assert.ok(listed.body.some(entry => entry.id === own.body.id && entry.status === "FULFILLED"));
+  assert.ok(!listed.body.some(entry => entry.id === other.body.id));
+  assert.equal(await Movement.countDocuments({ requestNumber: own.body.requestNumber }), 1);
+  for (const token of [adminToken, managerToken]) {
+    const entries = (await call("get", "/requests", { branchId }, token)).body;
+    assert.ok(entries.some(entry => entry.id === own.body.id));
+    assert.ok(entries.some(entry => entry.id === other.body.id));
+  }
+  await call("delete", `/requests/${other.body.id}`, { branchId });
+  await call("delete", `/requests/${own.body.id}`, { branchId });
+  const historical = (await call("get", "/requests", { branchId, includeDeleted: "true" }, employeeToken)).body;
+  assert.ok(historical.every(entry => entry.requestedBy === employee.id));
+  assert.ok(historical.some(entry => entry.id === own.body.id && entry.deletedAt));
+  assert.ok(!historical.some(entry => entry.id === other.body.id));
+});
+
+test("technicians can delete only their own pending requests", async () => {
+  const item = await create();
+  const make = (token = employeeToken) => call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, token);
+  const other = await make(managerToken);
+  assert.equal((await call("delete", `/requests/${other.body.id}`, { branchId }, employeeToken)).status, 403);
+  assert.ok(!(await PartRequest.findById(other.body.id)).deletedAt);
+  for (const status of ["PENDING", "APPROVED", "DENIED", "FULFILLED"]) {
+    const own = await make();
+    const path = `/requests/${own.body.id}`;
+    if (["APPROVED", "FULFILLED"].includes(status)) await call("patch", path, { branchId, status: "APPROVED" });
+    if (["DENIED", "FULFILLED"].includes(status)) await call("patch", path, { branchId, status, decisionReason: "Test denial" });
+    const deleted = await call("delete", path, { branchId }, employeeToken);
+    assert.equal(deleted.status, status === "PENDING" ? 200 : 403);
+    assert.equal(Boolean((await PartRequest.findById(own.body.id)).deletedAt), status === "PENDING");
+  }
+  assert.equal((await Product.findById(item.id)).quantity, 4);
+});
+
+test("technician deletion racing approval cannot delete an approved request", async () => {
+  const item = await create();
+  const own = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, employeeToken);
+  const path = `/requests/${own.body.id}`;
+  const [deleted, approved] = await Promise.all([
+    call("delete", path, { branchId }, employeeToken),
+    call("patch", path, { branchId, status: "APPROVED" }, managerToken),
+  ]);
+  const entry = await PartRequest.findById(own.body.id);
+  if (approved.status === 200) {
+    assert.equal(deleted.status, 403);
+    assert.equal(entry.status, "APPROVED");
+    assert.ok(!entry.deletedAt);
+  } else {
+    assert.equal(approved.status, 404);
+    assert.equal(deleted.status, 200);
+    assert.equal(entry.status, "PENDING");
+    assert.ok(entry.deletedAt);
+  }
+});
+
+test("managers can delete completed requests without changing stock, ledger or request identity", async () => {
+  const item = await create();
+  const created = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 2 }, employeeToken);
+  assert.equal(created.status, 201);
+  const path = `/requests/${created.body.id}`;
+  assert.equal((await call("patch", path, { branchId, status: "APPROVED" }, managerToken)).status, 200);
+  assert.equal((await call("patch", path, { branchId, status: "FULFILLED" }, managerToken)).status, 200);
+  assert.equal((await call("delete", path, { branchId }, employeeToken)).status, 403);
+  const deleted = await call("delete", path, { branchId }, managerToken);
+  assert.equal(deleted.status, 200);
+  assert.equal(deleted.body.requestNumber, created.body.requestNumber);
+  assert.equal(deleted.body.history.at(-1).status, "DELETED");
+  assert.equal(deleted.body.deletedByName, "Test Manager");
+  assert.equal((await Product.findById(item.id)).quantity, 3);
+  assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), 1);
+  assert.ok(!(await call("get", "/requests", { branchId })).body.some(entry => entry.id === created.body.id));
+  const historical = (await call("get", "/requests", { branchId, includeDeleted: "true" })).body.find(entry => entry.id === created.body.id);
+  assert.equal(historical.status, "FULFILLED");
+  assert.deepEqual(historical.history.map(event => event.status), ["PENDING", "APPROVED", "FULFILLED", "DELETED"]);
+  assert.equal((await call("patch", path, { branchId, status: "FULFILLED" })).status, 404);
+  assert.equal((await call("delete", path, { branchId })).status, 404);
+  assert.equal((await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 2, requestId: created.body.id }, employeeToken)).status, 409);
+});
+
+test("deleted active requests stop blocking inventory archiving", async () => {
+  const item = await create({ quantity: 0 });
+  const created = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, employeeToken);
+  const path = `/requests/${created.body.id}`;
+  assert.equal((await call("patch", path, { branchId, status: "APPROVED" })).status, 200);
+  assert.equal((await call("delete", `/products/${item.id}`, { branchId })).status, 409);
+  assert.equal((await call("delete", path, { branchId })).status, 200);
+  assert.equal((await call("delete", `/products/${item.id}`, { branchId })).status, 200);
+  assert.ok(await PartRequest.exists({ _id: created.body.id }));
+});
+
+test("request deletion racing fulfillment cannot cause partial stock changes", async () => {
+  const item = await create();
+  const created = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 2 }, employeeToken);
+  const path = `/requests/${created.body.id}`;
+  await call("patch", path, { branchId, status: "APPROVED" });
+  const [deleted, fulfilled] = await Promise.all([
+    call("delete", path, { branchId }), call("patch", path, { branchId, status: "FULFILLED" }),
+  ]);
+  assert.equal(deleted.status, 200);
+  assert.ok([200, 404].includes(fulfilled.status));
+  assert.equal((await Product.findById(item.id)).quantity, fulfilled.status === 200 ? 3 : 5);
+  assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), fulfilled.status === 200 ? 1 : 0);
+  assert.ok((await PartRequest.findById(created.body.id)).deletedAt);
+});
+
 test("all roles can edit their profile without granting themselves a different role or email", async () => {
   for (const role of ["ADMIN", "MANAGER", "EMPLOYEE"]) {
     const user = await removalAccount(`profile-${role.toLowerCase()}`, role);

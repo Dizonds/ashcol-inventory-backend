@@ -143,9 +143,11 @@ const requestSchema = new mongoose.Schema(
     decisionReason: String,
     fulfilledByName: String,
     fulfilledAt: Date,
+    deletedAt: Date,
+    deletedByName: String,
     history: [{
       _id: false,
-      status: { type: String, enum: ["PENDING", "APPROVED", "DENIED", "FULFILLED"], required: true },
+      status: { type: String, enum: ["PENDING", "APPROVED", "DENIED", "FULFILLED", "DELETED"], required: true },
       performedByName: String,
       at: { type: Date, required: true },
       reason: String,

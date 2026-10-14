@@ -25,7 +25,11 @@ router.get("/requests/reference", (req, res, next) => {
 });
 router.get("/requests", (req, res, next) => {
   branchScope(req, req.query.branchId)
-    .then((branchId) => PartRequest.find({ branchId }).sort({ createdAt: -1 }).populate("productId", "brand itemType category"))
+    .then((branchId) => PartRequest.find({
+      branchId,
+      ...(req.user.role === "EMPLOYEE" ? { requestedBy: String(req.user._id) } : {}),
+      ...(req.query.includeDeleted === "true" ? {} : { deletedAt: { $exists: false } }),
+    }).sort({ createdAt: -1 }).populate("productId", "brand itemType category"))
     .then((items) => res.json(items.map(requestJson)))
     .catch(next);
 });
@@ -85,6 +89,34 @@ router.post("/requests", (req, res, next) => {
     .then((item) => res.status(201).json(item))
     .catch(next);
 });
+router.delete("/requests/:id", (req, res, next) => {
+  branchScope(req, req.body.branchId)
+    .then((branchId) => transaction(async (session) => {
+      const request = await PartRequest.findOneAndUpdate(
+        { _id: req.params.id, branchId, deletedAt: { $exists: false } },
+        { $inc: { __v: 1 } }, { new: true, session },
+      );
+      if (!request) fail("Request not found or already deleted.", 404);
+      if (req.user.role === "EMPLOYEE") {
+        if (request.requestedBy !== String(req.user._id)) fail("You can only delete your own requests.", 403);
+        if (request.status !== "PENDING") fail("Only pending requests can be deleted by technicians.", 403);
+      } else if (!["ADMIN", "MANAGER"].includes(req.user.role)) {
+        fail("You do not have permission to delete requests.", 403);
+      }
+      if (!request.history.length) {
+        if (request.createdAt) request.history.push({ status: "PENDING", performedByName: request.requestedByName, at: request.createdAt });
+        if (request.reviewedAt) request.history.push({ status: request.status === "DENIED" ? "DENIED" : "APPROVED", performedByName: request.reviewedByName, at: request.reviewedAt, reason: request.decisionReason });
+        if (request.fulfilledAt) request.history.push({ status: "FULFILLED", performedByName: request.fulfilledByName, at: request.fulfilledAt });
+      }
+      request.deletedAt = new Date();
+      request.deletedByName = req.user.fullName;
+      request.history.push({ status: "DELETED", performedByName: req.user.fullName, at: request.deletedAt });
+      await request.save({ session });
+      return requestJson(request);
+    }))
+    .then((request) => res.json(request))
+    .catch(next);
+});
 router.patch("/requests/:id", manage, (req, res, next) => {
   const status = text(req.body.status, "Status");
   if (!["APPROVED", "DENIED", "FULFILLED"].includes(status))
@@ -97,7 +129,7 @@ router.patch("/requests/:id", manage, (req, res, next) => {
   branchScope(req, req.body.branchId)
     .then((branchId) =>
       transaction((session) => {
-        return PartRequest.findOne({ _id: req.params.id, branchId })
+        return PartRequest.findOne({ _id: req.params.id, branchId, deletedAt: { $exists: false } })
           .session(session)
           .then((request) => {
             if (!request) fail("Request not found.", 404);
