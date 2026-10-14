@@ -1,0 +1,16 @@
+{
+  "exportedAt": "2026-10-14T05:19:19.919Z",
+  "format": "MongoDB Extended JSON (canonical), one array per collection",
+  "collections": {
+    "service_vans": 7,
+    "stock_movements": 70,
+    "partrequests": 1,
+    "products": 21,
+    "users": 3,
+    "suppliers": 6,
+    "brands": 13
+  },
+  "excludedCollections": [
+    "sessions"
+  ]
+}

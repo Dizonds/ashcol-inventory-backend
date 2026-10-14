@@ -1,0 +1,249 @@
+[
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ebc"
+    },
+    "name": "Carrier",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909751"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909751"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ebd"
+    },
+    "name": "Daikin",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ebe"
+    },
+    "name": "Panasonic",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ebf"
+    },
+    "name": "LG",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec0"
+    },
+    "name": "Kolin",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec1"
+    },
+    "name": "Samsung",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec2"
+    },
+    "name": "Mitsubishi",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec3"
+    },
+    "name": "Midea",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec4"
+    },
+    "name": "Gree",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909753"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec5"
+    },
+    "name": "TCL",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec6"
+    },
+    "name": "Generic Parts",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec7"
+    },
+    "name": "Armacell",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ec8"
+    },
+    "name": "Kembla",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909754"
+      }
+    }
+  }
+]

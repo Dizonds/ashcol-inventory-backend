@@ -1,0 +1,2734 @@
+[
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f01"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "12"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2601",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909929"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f02"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "8"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2602",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909929"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f03"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "10"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2603",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909929"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f04"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "6"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2604",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909929"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f05"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ede"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "KOL-1.0HP-WINV",
+    "itemName": "Kolin Full DC Inverter Window Type",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "14"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "14"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2605",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909929"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f06"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee0"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "GREE-3.0TR-FLR",
+    "itemName": "Gree Commercial Floor Mounted Package AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "3"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2606",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909929"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f07"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee2"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CMP-GMCC-1.5HP",
+    "itemName": "GMCC Rotary Inverter Compressor 1.5 HP",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "5"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2607",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f08"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "35"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2608",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f09"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MOT-FAN-OUT-45W",
+    "itemName": "Condenser Outdoor Fan Motor 45W",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "4"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2609",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f0a"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PCB-MAIN-INV-CAR",
+    "itemName": "Carrier Crystal Indoor Main Control PCB",
+    "unitOfMeasure": "PCS",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "3"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2610",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f0b"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "20"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2611",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f0c"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "15"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2612",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f0d"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eee"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "COP-1/4-3/8-15M",
+    "itemName": "Insulated Pair Copper Pipe Coil 1/4\" x 3/8\"",
+    "unitOfMeasure": "ROLL",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "25"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "25"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2613",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f0e"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ef0"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "COP-1/4-1/2-15M",
+    "itemName": "Insulated Pair Copper Pipe Coil 1/4\" x 1/2\"",
+    "unitOfMeasure": "ROLL",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "18"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "18"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2614",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f0f"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ef2"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-DRAIN-HOSE",
+    "itemName": "Heavy Duty Flexible AC Drain Hose 5/8\"",
+    "unitOfMeasure": "ROLL",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "22"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "22"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2615",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f10"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ef4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-WALL-BRKT-L",
+    "itemName": "Heavy-Duty Powder Coated Outdoor AC Bracket",
+    "unitOfMeasure": "PAIR",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "30"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "30"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2616",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f11"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ef6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "TOOL-VAC-2STAGE",
+    "itemName": "Robinair 2-Stage HVAC Vacuum Pump 5 CFM",
+    "unitOfMeasure": "UNIT",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "4"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2617",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f12"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ef8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "TOOL-MANIFOLD-DIG",
+    "itemName": "Digital 4-Way Manifold Gauge Set (R32 / R410A)",
+    "unitOfMeasure": "SET",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "6"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2618",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f13"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283efa"
+    },
+    "branchId": "VAN-01",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "2"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2619",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f14"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283efc"
+    },
+    "branchId": "VAN-01",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "5"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2620",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f15"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283efe"
+    },
+    "branchId": "VAN-01",
+    "sku": "TOOL-MANIFOLD-DIG",
+    "itemName": "Digital 4-Way Manifold Gauge Set (R32 / R410A)",
+    "unitOfMeasure": "SET",
+    "movementType": "OPENING",
+    "quantityDelta": {
+      "$numberInt": "1"
+    },
+    "beforeQuantity": {
+      "$numberInt": "0"
+    },
+    "afterQuantity": {
+      "$numberInt": "1"
+    },
+    "reason": "Initial clean database intake balance",
+    "referenceId": "STI2621",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790606909916"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f16"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "15"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Client Installation / Site Project: Taguig BGC Condo Tower 2",
+    "workOrderId": "JOB-2026-101",
+    "referenceId": "STO2601",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791470909917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f17"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "25"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Client Installation / Site Project: Pasay Hotel Maintenance",
+    "workOrderId": "JOB-2026-108",
+    "referenceId": "STO2602",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791643709917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f18"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "2"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Supplier Delivery / Restock: Panasonic dealer replenishment",
+    "referenceId": "STI2603",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791211709917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f19"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "10"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Supplier Delivery / Restock: Refrigerant replenishment",
+    "referenceId": "STI2604",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791557309917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f1a"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "3"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2605",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791848909917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f1b"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "31"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2606",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791762509917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f1c"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "23"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2607",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791784109917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f1d"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "5"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2608",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791676109917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f1e"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "13"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2609",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791589709917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f1f"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "14"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2610",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791611309917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f20"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "5"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2611",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791503309917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f21"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "16"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2612",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791416909917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f22"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-1"
+    },
+    "beforeQuantity": {
+      "$numberInt": "7"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2613",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791438509917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f23"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "7"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2614",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791330509917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f24"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "4"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2615",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791244109917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f25"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "38"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2616",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791265709917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909930"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f26"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "32"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2617",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791157709917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f27"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "6"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2618",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791071309917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f28"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "12"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2619",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791092909917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f29"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "10"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2620",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790984909917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f2a"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "6"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2621",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790898509917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f2b"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-1"
+    },
+    "beforeQuantity": {
+      "$numberInt": "16"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2622",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790920109917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f2c"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "17"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2623",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790812109917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f2d"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "8"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2624",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790725709917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f2e"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "11"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2625",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790747309917"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f2f"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "1"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2626",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790639309918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f30"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "33"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2627",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790552909918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f31"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "22"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2628",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790574509918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f32"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "7"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2629",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790466509918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f33"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "11"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2630",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790380109918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f34"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-1"
+    },
+    "beforeQuantity": {
+      "$numberInt": "13"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2631",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790401709918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f35"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "3"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2632",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790293709918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f36"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "18"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2633",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790207309918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f37"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "9"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2634",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790228909918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f38"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "9"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2635",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790120909918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f39"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "2"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2636",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790034509918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f3a"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "37"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2637",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1790056109918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f3b"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "30"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2638",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789948109918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f3c"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "8"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2639",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789861709918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f3d"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "itemName": "Daikin D-Compact Inverter Split AC",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-1"
+    },
+    "beforeQuantity": {
+      "$numberInt": "11"
+    },
+    "afterQuantity": {
+      "$numberInt": "10"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2640",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789883309918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f3e"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "12"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2641",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789775309918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f3f"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "4"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2642",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789688909918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f40"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "itemName": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "18"
+    },
+    "afterQuantity": {
+      "$numberInt": "15"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2643",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789710509918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f41"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "5"
+    },
+    "beforeQuantity": {
+      "$numberInt": "15"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2644",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789602509918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f42"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "itemName": "Carrier Crystal Inverter Split System",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "10"
+    },
+    "afterQuantity": {
+      "$numberInt": "12"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2645",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789516109918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f43"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "itemName": "Carrier Aura Inverter High Wall Split",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-2"
+    },
+    "beforeQuantity": {
+      "$numberInt": "10"
+    },
+    "afterQuantity": {
+      "$numberInt": "8"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2646",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789537709918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f44"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "itemName": "Panasonic Aero Inverter nanoe™ X",
+    "unitOfMeasure": "UNIT",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "3"
+    },
+    "beforeQuantity": {
+      "$numberInt": "3"
+    },
+    "afterQuantity": {
+      "$numberInt": "6"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2647",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789429709918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f45"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "itemName": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "unitOfMeasure": "PCS",
+    "movementType": "STOCK_IN",
+    "quantityDelta": {
+      "$numberInt": "4"
+    },
+    "beforeQuantity": {
+      "$numberInt": "31"
+    },
+    "afterQuantity": {
+      "$numberInt": "35"
+    },
+    "reason": "Supplier delivery / scheduled replenishment",
+    "referenceId": "STI2648",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789343309918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283f46"
+    },
+    "productId": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
+    "unitOfMeasure": "CYL",
+    "movementType": "STOCK_OUT",
+    "quantityDelta": {
+      "$numberInt": "-1"
+    },
+    "beforeQuantity": {
+      "$numberInt": "21"
+    },
+    "afterQuantity": {
+      "$numberInt": "20"
+    },
+    "reason": "Client installation / service dispatch",
+    "referenceId": "STO2649",
+    "performedBy": "system",
+    "performedByName": "Admin Master (Hatdog)",
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1789364909918"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909931"
+      }
+    }
+  }
+]

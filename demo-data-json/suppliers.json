@@ -1,0 +1,146 @@
+[
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ecb"
+    },
+    "name": "Concepcion-Carrier Air Conditioning Co.",
+    "contactPerson": "Eduardo Santos",
+    "phone": "+63 2 8863 5555",
+    "email": "corporate.sales@ccac.com.ph",
+    "address": "Km 20 East Service Road, South Superhighway, Muntinlupa",
+    "terms": "30 Days Net",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ecc"
+    },
+    "name": "Daikin Airconditioning Phils Inc.",
+    "contactPerson": "Maria Teresa Reyes",
+    "phone": "+63 2 8370 2828",
+    "email": "dealer.inquiry@daikin.com.ph",
+    "address": "BGC, Taguig City, Metro Manila",
+    "terms": "30 Days Net",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ecd"
+    },
+    "name": "Panasonic Manufacturing Phils.",
+    "contactPerson": "Roberto Gomez",
+    "phone": "+63 2 8635 2260",
+    "email": "hvac.solutions@panasonic.com.ph",
+    "address": "Taytay, Rizal",
+    "terms": "45 Days Net",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ece"
+    },
+    "name": "Chemours Specialty Chemicals",
+    "contactPerson": "Analyn Cruz",
+    "phone": "+63 2 8894 1120",
+    "email": "freon.orders@chemours.com",
+    "address": "Makati City, Metro Manila",
+    "terms": "COD / 15 Days",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ecf"
+    },
+    "name": "Kembla Copper Tube Phils.",
+    "contactPerson": "Fernando Lim",
+    "phone": "+63 2 8361 7788",
+    "email": "tubing.sales@kembla.com.ph",
+    "address": "Caloocan City, Metro Manila",
+    "terms": "30 Days Net",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ed0"
+    },
+    "name": "Apex HVAC Components & Metal Fabrication",
+    "contactPerson": "Michael Tan",
+    "phone": "+63 2 8282 3344",
+    "email": "orders@apexmetal.ph",
+    "address": "Valenzuela City, Metro Manila",
+    "terms": "COD",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909794"
+      }
+    }
+  }
+]

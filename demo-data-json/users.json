@@ -1,0 +1,77 @@
+[
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ed2"
+    },
+    "email": "hatdog@hat.com",
+    "firstName": "",
+    "lastName": "",
+    "fullName": "Admin Master (Hatdog)",
+    "role": "ADMIN",
+    "branchId": "LOCAL-WAREHOUSE",
+    "passwordHash": "461fc4eb781d7b12a55e62eae56858f8:b5bc1ddf7312cc9df16e7c9b72af89355c3580f520431ead9bbab82788fb8d4f0c8475e4aae98eb3de5a8fbe870678325ab91053be3ee38027de2a1435fa93a1",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909856"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909856"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ed3"
+    },
+    "email": "manager@ashcol.com",
+    "firstName": "",
+    "lastName": "",
+    "fullName": "Warehouse Manager",
+    "role": "MANAGER",
+    "branchId": "LOCAL-WAREHOUSE",
+    "passwordHash": "461fc4eb781d7b12a55e62eae56858f8:b5bc1ddf7312cc9df16e7c9b72af89355c3580f520431ead9bbab82788fb8d4f0c8475e4aae98eb3de5a8fbe870678325ab91053be3ee38027de2a1435fa93a1",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909856"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909856"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ed4"
+    },
+    "email": "technician@ashcol.com",
+    "firstName": "",
+    "lastName": "",
+    "fullName": "Field Technician Lead",
+    "role": "EMPLOYEE",
+    "branchId": "LOCAL-WAREHOUSE",
+    "passwordHash": "461fc4eb781d7b12a55e62eae56858f8:b5bc1ddf7312cc9df16e7c9b72af89355c3580f520431ead9bbab82788fb8d4f0c8475e4aae98eb3de5a8fbe870678325ab91053be3ee38027de2a1435fa93a1",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909856"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909856"
+      }
+    }
+  }
+]

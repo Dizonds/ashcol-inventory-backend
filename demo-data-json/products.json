@@ -1,0 +1,1264 @@
+[
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ed6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.0HP-CRY",
+    "name": "Carrier Crystal Inverter Split System",
+    "itemType": "AC Unit",
+    "category": "Split Type",
+    "brand": "Carrier",
+    "capacity": "1.0 HP / 9,500 BTU",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "21500"
+    },
+    "listPrice": {
+      "$numberInt": "28900"
+    },
+    "quantity": {
+      "$numberInt": "12"
+    },
+    "reorderLevel": {
+      "$numberInt": "3"
+    },
+    "archived": false,
+    "supplier": "Concepcion-Carrier Air Conditioning Co.",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "21500"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ed7"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909873"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909892"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909892"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ed8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CAR-1.5HP-INV",
+    "name": "Carrier Aura Inverter High Wall Split",
+    "itemType": "AC Unit",
+    "category": "Split Type",
+    "brand": "Carrier",
+    "capacity": "1.5 HP / 12,000 BTU",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "26800"
+    },
+    "listPrice": {
+      "$numberInt": "34500"
+    },
+    "quantity": {
+      "$numberInt": "8"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Concepcion-Carrier Air Conditioning Co.",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "26800"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ed9"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909874"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909893"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909893"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283eda"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "DAIK-1.0HP-INV",
+    "name": "Daikin D-Compact Inverter Split AC",
+    "itemType": "AC Unit",
+    "category": "Split Type",
+    "brand": "Daikin",
+    "capacity": "1.0 HP / 9,000 BTU",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "23500"
+    },
+    "listPrice": {
+      "$numberInt": "30500"
+    },
+    "quantity": {
+      "$numberInt": "10"
+    },
+    "reorderLevel": {
+      "$numberInt": "3"
+    },
+    "archived": false,
+    "supplier": "Daikin Airconditioning Phils Inc.",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "23500"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283edb"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909875"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909893"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909893"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283edc"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PANA-1.5HP-XPU",
+    "name": "Panasonic Aero Inverter nanoe™ X",
+    "itemType": "AC Unit",
+    "category": "Split Type",
+    "brand": "Panasonic",
+    "capacity": "1.5 HP / 12,500 BTU",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "28200"
+    },
+    "listPrice": {
+      "$numberInt": "36800"
+    },
+    "quantity": {
+      "$numberInt": "6"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Panasonic Manufacturing Phils.",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "28200"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283edd"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909875"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909894"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909894"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ede"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "KOL-1.0HP-WINV",
+    "name": "Kolin Full DC Inverter Window Type",
+    "itemType": "AC Unit",
+    "category": "Window Type",
+    "brand": "Kolin",
+    "capacity": "1.0 HP / 9,800 BTU",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "17200"
+    },
+    "listPrice": {
+      "$numberInt": "22400"
+    },
+    "quantity": {
+      "$numberInt": "14"
+    },
+    "reorderLevel": {
+      "$numberInt": "4"
+    },
+    "archived": false,
+    "supplier": "Concepcion-Carrier Air Conditioning Co.",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "17200"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283edf"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909876"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909894"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909894"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ee0"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "GREE-3.0TR-FLR",
+    "name": "Gree Commercial Floor Mounted Package AC",
+    "itemType": "AC Unit",
+    "category": "Floor Mounted",
+    "brand": "Gree",
+    "capacity": "3.0 TR / 36,000 BTU",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "68000"
+    },
+    "listPrice": {
+      "$numberInt": "84500"
+    },
+    "quantity": {
+      "$numberInt": "3"
+    },
+    "reorderLevel": {
+      "$numberInt": "1"
+    },
+    "archived": false,
+    "supplier": "Concepcion-Carrier Air Conditioning Co.",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "68000"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ee1"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909876"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909894"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909894"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ee2"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "CMP-GMCC-1.5HP",
+    "name": "GMCC Rotary Inverter Compressor 1.5 HP",
+    "itemType": "Spare Part",
+    "category": "Compressors",
+    "brand": "Midea",
+    "capacity": "1.5 HP (R410A / R32)",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "6800"
+    },
+    "listPrice": {
+      "$numberInt": "9400"
+    },
+    "quantity": {
+      "$numberInt": "5"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Concepcion-Carrier Air Conditioning Co.",
+    "compatibleModels": [
+      "CAR-1.5HP-INV",
+      "DAIK-1.0HP-INV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "6800"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ee3"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909877"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ee4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-CAP-35-5MFD",
+    "name": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "itemType": "Spare Part",
+    "category": "Capacitors",
+    "brand": "Generic Parts",
+    "capacity": "35+5 uF 450V Round CBB65",
+    "unitOfMeasure": "PCS",
+    "unitCost": {
+      "$numberInt": "280"
+    },
+    "listPrice": {
+      "$numberInt": "480"
+    },
+    "quantity": {
+      "$numberInt": "35"
+    },
+    "reorderLevel": {
+      "$numberInt": "10"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV",
+      "KOL-1.0HP-WINV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "280"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ee5"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909877"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ee6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MOT-FAN-OUT-45W",
+    "name": "Condenser Outdoor Fan Motor 45W",
+    "itemType": "Spare Part",
+    "category": "Fan Motors",
+    "brand": "Panasonic",
+    "capacity": "45W 220V 850 RPM",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "2450"
+    },
+    "listPrice": {
+      "$numberInt": "3600"
+    },
+    "quantity": {
+      "$numberInt": "4"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Panasonic Manufacturing Phils.",
+    "compatibleModels": [
+      "PANA-1.5HP-XPU",
+      "CAR-1.5HP-INV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "2450"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ee7"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909878"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ee8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "PCB-MAIN-INV-CAR",
+    "name": "Carrier Crystal Indoor Main Control PCB",
+    "itemType": "Spare Part",
+    "category": "PCBs & Inverters",
+    "brand": "Carrier",
+    "capacity": "Model Crystal Series Rev 3",
+    "unitOfMeasure": "PCS",
+    "unitCost": {
+      "$numberInt": "3800"
+    },
+    "listPrice": {
+      "$numberInt": "5500"
+    },
+    "quantity": {
+      "$numberInt": "3"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Concepcion-Carrier Air Conditioning Co.",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "3800"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ee9"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909878"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283eea"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R410A-11.3",
+    "name": "DuPont Suva Freon R410A Refrigerant Tank",
+    "itemType": "Consumable",
+    "category": "Refrigerants",
+    "brand": "Generic Parts",
+    "capacity": "11.3 kg / 25 lbs Cylinder",
+    "unitOfMeasure": "CYL",
+    "unitCost": {
+      "$numberInt": "3850"
+    },
+    "listPrice": {
+      "$numberInt": "5200"
+    },
+    "quantity": {
+      "$numberInt": "20"
+    },
+    "reorderLevel": {
+      "$numberInt": "5"
+    },
+    "archived": false,
+    "supplier": "Chemours Specialty Chemicals",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV",
+      "KOL-1.0HP-WINV",
+      "GREE-3.0TR-FLR"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "3850"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283eeb"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909879"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909895"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283eec"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "FRN-R32-9.5KG",
+    "name": "Daikin Genuine Eco-Refrigerant R32 Cylinder",
+    "itemType": "Consumable",
+    "category": "Refrigerants",
+    "brand": "Daikin",
+    "capacity": "9.5 kg Cylinder",
+    "unitOfMeasure": "CYL",
+    "unitCost": {
+      "$numberInt": "4600"
+    },
+    "listPrice": {
+      "$numberInt": "6200"
+    },
+    "quantity": {
+      "$numberInt": "15"
+    },
+    "reorderLevel": {
+      "$numberInt": "4"
+    },
+    "archived": false,
+    "supplier": "Daikin Airconditioning Phils Inc.",
+    "compatibleModels": [
+      "DAIK-1.0HP-INV",
+      "PANA-1.5HP-XPU"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "4600"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283eed"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909879"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909896"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909896"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283eee"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "COP-1/4-3/8-15M",
+    "name": "Insulated Pair Copper Pipe Coil 1/4\" x 3/8\"",
+    "itemType": "Consumable",
+    "category": "Copper Tubing",
+    "brand": "Kembla",
+    "capacity": "15 Meters Roll with Armaflex",
+    "unitOfMeasure": "ROLL",
+    "unitCost": {
+      "$numberInt": "2250"
+    },
+    "listPrice": {
+      "$numberInt": "3100"
+    },
+    "quantity": {
+      "$numberInt": "25"
+    },
+    "reorderLevel": {
+      "$numberInt": "6"
+    },
+    "archived": false,
+    "supplier": "Kembla Copper Tube Phils.",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "DAIK-1.0HP-INV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "2250"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283eef"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909880"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909896"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909896"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ef0"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "COP-1/4-1/2-15M",
+    "name": "Insulated Pair Copper Pipe Coil 1/4\" x 1/2\"",
+    "itemType": "Consumable",
+    "category": "Copper Tubing",
+    "brand": "Kembla",
+    "capacity": "15 Meters Roll with Armaflex",
+    "unitOfMeasure": "ROLL",
+    "unitCost": {
+      "$numberInt": "2950"
+    },
+    "listPrice": {
+      "$numberInt": "3950"
+    },
+    "quantity": {
+      "$numberInt": "18"
+    },
+    "reorderLevel": {
+      "$numberInt": "5"
+    },
+    "archived": false,
+    "supplier": "Kembla Copper Tube Phils.",
+    "compatibleModels": [
+      "CAR-1.5HP-INV",
+      "PANA-1.5HP-XPU"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "2950"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ef1"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909880"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909896"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909896"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ef2"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-DRAIN-HOSE",
+    "name": "Heavy Duty Flexible AC Drain Hose 5/8\"",
+    "itemType": "Consumable",
+    "category": "Installation Materials",
+    "brand": "Generic Parts",
+    "capacity": "50 Meters Roll",
+    "unitOfMeasure": "ROLL",
+    "unitCost": {
+      "$numberInt": "850"
+    },
+    "listPrice": {
+      "$numberInt": "1350"
+    },
+    "quantity": {
+      "$numberInt": "22"
+    },
+    "reorderLevel": {
+      "$numberInt": "5"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV",
+      "DAIK-1.0HP-INV",
+      "PANA-1.5HP-XPU"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "850"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ef3"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909880"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ef4"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "MAT-WALL-BRKT-L",
+    "name": "Heavy-Duty Powder Coated Outdoor AC Bracket",
+    "itemType": "Consumable",
+    "category": "Installation Materials",
+    "brand": "Generic Parts",
+    "capacity": "For 1.0 HP – 2.5 HP Condensers",
+    "unitOfMeasure": "PAIR",
+    "unitCost": {
+      "$numberInt": "650"
+    },
+    "listPrice": {
+      "$numberInt": "1050"
+    },
+    "quantity": {
+      "$numberInt": "30"
+    },
+    "reorderLevel": {
+      "$numberInt": "8"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV",
+      "DAIK-1.0HP-INV",
+      "PANA-1.5HP-XPU"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "650"
+        },
+        "supplier": "",
+        "note": "Initial stock intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ef5"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909881"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ef6"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "TOOL-VAC-2STAGE",
+    "name": "Robinair 2-Stage HVAC Vacuum Pump 5 CFM",
+    "itemType": "Tool / Equipment",
+    "category": "Vacuum Pumps",
+    "brand": "Generic Parts",
+    "capacity": "5 CFM Dual Stage Deep Vacuum",
+    "unitOfMeasure": "UNIT",
+    "unitCost": {
+      "$numberInt": "11500"
+    },
+    "listPrice": {
+      "$numberInt": "15800"
+    },
+    "quantity": {
+      "$numberInt": "4"
+    },
+    "reorderLevel": {
+      "$numberInt": "1"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "11500"
+        },
+        "supplier": "",
+        "note": "Initial equipment intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ef7"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909881"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283ef8"
+    },
+    "branchId": "LOCAL-WAREHOUSE",
+    "sku": "TOOL-MANIFOLD-DIG",
+    "name": "Digital 4-Way Manifold Gauge Set (R32 / R410A)",
+    "itemType": "Tool / Equipment",
+    "category": "Manifold Gauges",
+    "brand": "Generic Parts",
+    "capacity": "Dual Pressure Transducers & Temperature Clamps",
+    "unitOfMeasure": "SET",
+    "unitCost": {
+      "$numberInt": "8900"
+    },
+    "listPrice": {
+      "$numberInt": "12500"
+    },
+    "quantity": {
+      "$numberInt": "6"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "8900"
+        },
+        "supplier": "",
+        "note": "Initial equipment intake",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283ef9"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909881"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283efa"
+    },
+    "branchId": "VAN-01",
+    "sku": "FRN-R410A-11.3",
+    "name": "DuPont Suva Freon R410A Refrigerant Tank",
+    "itemType": "Consumable",
+    "category": "Refrigerants",
+    "brand": "Generic Parts",
+    "capacity": "11.3 kg / 25 lbs Cylinder",
+    "unitOfMeasure": "CYL",
+    "unitCost": {
+      "$numberInt": "3850"
+    },
+    "listPrice": {
+      "$numberInt": "5200"
+    },
+    "quantity": {
+      "$numberInt": "2"
+    },
+    "reorderLevel": {
+      "$numberInt": "1"
+    },
+    "archived": false,
+    "supplier": "Chemours Specialty Chemicals",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV",
+      "KOL-1.0HP-WINV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "3850"
+        },
+        "supplier": "",
+        "note": "Van allocation",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283efb"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909882"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283efc"
+    },
+    "branchId": "VAN-01",
+    "sku": "MAT-CAP-35-5MFD",
+    "name": "Dual Run Motor Capacitor 35+5 MFD 450VAC",
+    "itemType": "Spare Part",
+    "category": "Capacitors",
+    "brand": "Generic Parts",
+    "capacity": "35+5 uF 450V Round CBB65",
+    "unitOfMeasure": "PCS",
+    "unitCost": {
+      "$numberInt": "280"
+    },
+    "listPrice": {
+      "$numberInt": "480"
+    },
+    "quantity": {
+      "$numberInt": "5"
+    },
+    "reorderLevel": {
+      "$numberInt": "2"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [
+      "CAR-1.0HP-CRY",
+      "CAR-1.5HP-INV"
+    ],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "280"
+        },
+        "supplier": "",
+        "note": "Van allocation",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283efd"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909882"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ace44bd49b8c3ec1b283efe"
+    },
+    "branchId": "VAN-01",
+    "sku": "TOOL-MANIFOLD-DIG",
+    "name": "Digital 4-Way Manifold Gauge Set (R32 / R410A)",
+    "itemType": "Tool / Equipment",
+    "category": "Manifold Gauges",
+    "brand": "Generic Parts",
+    "capacity": "Dual Pressure Transducers & Temperature Clamps",
+    "unitOfMeasure": "SET",
+    "unitCost": {
+      "$numberInt": "8900"
+    },
+    "listPrice": {
+      "$numberInt": "12500"
+    },
+    "quantity": {
+      "$numberInt": "1"
+    },
+    "reorderLevel": {
+      "$numberInt": "1"
+    },
+    "archived": false,
+    "supplier": "Apex HVAC Components & Metal Fabrication",
+    "compatibleModels": [],
+    "priceHistory": [
+      {
+        "cost": {
+          "$numberInt": "8900"
+        },
+        "supplier": "",
+        "note": "Van equipment assignment",
+        "_id": {
+          "$oid": "6ace44bd49b8c3ec1b283eff"
+        },
+        "date": {
+          "$date": {
+            "$numberLong": "1791902909883"
+          }
+        }
+      }
+    ],
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1791902909897"
+      }
+    }
+  }
+]
