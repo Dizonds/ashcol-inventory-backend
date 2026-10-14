@@ -126,6 +126,186 @@ after(async () => {
   if (database) await database.stop();
 });
 
+async function removalAccount(label, role = "EMPLOYEE") {
+  const response = await call("post", "/users", {
+    firstName: "Removal", lastName: "Tester", email: `${label}@example.test`,
+    password: "Removal-test-2026", role, branchId,
+  });
+  assert.equal(response.status, 201, JSON.stringify(response.body));
+  return response.body;
+}
+
+test("user removal is admin-only, protects the signed-in administrator, and permits backup admins", async () => {
+  const account = await removalAccount("removal-backup", "ADMIN");
+  assert.equal((await call("delete", `/users/${account.id}`, {}, managerToken)).status, 403);
+  assert.equal((await call("delete", `/users/${account.id}`, {}, employeeToken)).status, 403);
+  const administrator = await call("get", "/auth/me");
+  const self = await call("delete", `/users/${administrator.body.id}`);
+  assert.equal(self.status, 409);
+  assert.match(self.body.error, /own signed-in account/);
+  assert.ok(await User.exists({ _id: administrator.body.id }));
+  assert.equal((await call("delete", `/users/${account.id}`)).status, 200);
+  assert.equal((await call("delete", `/users/${account.id}`)).status, 404);
+});
+
+test("removed users lose all sessions and cannot log in while their history remains", async () => {
+  const user = await removalAccount("removal-staff");
+  const login = await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" });
+  assert.equal(login.status, 200);
+  assert.equal((await call("get", "/auth/me", {}, login.body.token)).status, 200);
+  const item = await create();
+  const entry = await Movement.create({ branchId, productId: item.id, performedBy: user.id, performedByName: user.fullName, movementType: "DETAILS", quantityDelta: 0 });
+  const request = await PartRequest.create({ branchId, productId: item.id, quantityNeeded: 1, workOrderId: "REMOVAL-HISTORY", requestedBy: user.id, requestedByName: user.fullName });
+  assert.equal((await call("delete", `/users/${user.id}`)).status, 200);
+  assert.equal(await User.exists({ _id: user.id }), null);
+  assert.equal(await Session.countDocuments({ userId: user.id }), 0);
+  assert.equal((await call("get", "/auth/me", {}, login.body.token)).status, 401);
+  assert.equal((await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" })).status, 401);
+  assert.equal((await Movement.findById(entry._id)).performedByName, user.fullName);
+  assert.equal((await PartRequest.findById(request._id)).requestedByName, user.fullName);
+});
+
+test("assigned users must be unassigned with No Driver before removal, including legacy assignments", async () => {
+  const user = await removalAccount("removal-driver");
+  await ServiceVan.create({ _id: "VAN-USER-REMOVE-ID", name: "Assigned By ID", driverId: user.id, driverName: user.fullName });
+  await ServiceVan.create({ _id: "VAN-USER-REMOVE-NAME", name: "Assigned By Name", driverName: `${user.fullName} (EMPLOYEE)` });
+  const blocked = await call("delete", `/users/${user.id}`);
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.body.error, /No Driver/);
+  assert.ok(await User.exists({ _id: user.id }));
+  assert.equal((await call("patch", "/service-vans/VAN-USER-REMOVE-ID/driver", { driverId: "" })).status, 200);
+  assert.equal((await call("delete", `/users/${user.id}`)).status, 409);
+  assert.equal((await call("patch", "/service-vans/VAN-USER-REMOVE-NAME/driver", { driverId: "" })).status, 200);
+  assert.equal((await call("delete", `/users/${user.id}`)).status, 200);
+});
+
+test("two administrators cannot remove each other simultaneously", async () => {
+  const first = await removalAccount("removal-admin-first", "ADMIN");
+  const second = await removalAccount("removal-admin-second", "ADMIN");
+  const login = async (user) => (await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" })).body.token;
+  const firstToken = await login(first);
+  const secondToken = await login(second);
+  const results = await Promise.all([
+    call("delete", `/users/${second.id}`, {}, firstToken),
+    call("delete", `/users/${first.id}`, {}, secondToken),
+  ]);
+  assert.deepEqual(results.map((response) => response.status).sort(), [200, 401]);
+  assert.equal(await User.countDocuments({ _id: { $in: [first.id, second.id] } }), 1);
+  assert.ok(await User.exists({ email: "admin@example.test" }));
+});
+
+test("account removal and driver assignment cannot leave a deleted driver on a vehicle", async () => {
+  const user = await removalAccount("removal-assignment-race");
+  const id = "VAN-USER-REMOVE-RACE";
+  await ServiceVan.create({ _id: id, name: "Driver Assignment Race" });
+  const [removal, assignment] = await Promise.all([
+    call("delete", `/users/${user.id}`),
+    call("patch", `/service-vans/${id}/driver`, { driverId: user.id }),
+  ]);
+  const van = await ServiceVan.findById(id);
+  if (await User.exists({ _id: user.id })) {
+    assert.equal(removal.status, 409);
+    assert.equal(assignment.status, 200);
+    assert.equal(van.driverId, user.id);
+  } else {
+    assert.equal(removal.status, 200);
+    assert.equal(assignment.status, 404);
+    assert.equal(van.driverId, "");
+  }
+});
+
+test("only administrators can delete idle, unassigned service vehicles", async () => {
+  const id = "VAN-DELETE-IDLE";
+  await ServiceVan.create({ _id: id, name: "Idle Vehicle" });
+  assert.equal((await call("delete", `/service-vans/${id}`, {}, managerToken)).status, 403);
+  assert.equal((await call("delete", `/service-vans/${id}`, {}, employeeToken)).status, 403);
+  assert.ok(await ServiceVan.exists({ _id: id }));
+  assert.equal((await call("delete", `/service-vans/${id}`)).status, 200);
+  assert.equal(await ServiceVan.exists({ _id: id }), null);
+  assert.equal((await call("delete", `/service-vans/${id}`)).status, 404);
+  assert.equal((await call("delete", "/service-vans/LOCAL-WAREHOUSE")).status, 400);
+});
+
+test("vehicle deletion blocks assigned drivers and all busy statuses", async () => {
+  const cases = [
+    { _id: "VAN-DELETE-DRIVER", name: "Assigned", driverId: "assigned-user" },
+    { _id: "VAN-DELETE-LEGACY", name: "Legacy Driver", driverName: "Legacy Technician" },
+    ...["ON_FIELD", "ARRIVED", "MAINTENANCE"].map((status) => ({ _id: `VAN-DELETE-${status}`, name: status, status })),
+  ];
+  for (const vehicle of cases) {
+    await ServiceVan.create(vehicle);
+    const response = await call("delete", `/service-vans/${vehicle._id}`);
+    assert.equal(response.status, 409);
+    assert.match(response.body.error, /Vehicle is busy/);
+    assert.ok(await ServiceVan.exists({ _id: vehicle._id }));
+  }
+  await ServiceVan.updateOne({ _id: "VAN-DELETE-LEGACY" }, { $set: { driverName: "" } });
+  assert.equal((await call("delete", "/service-vans/VAN-DELETE-LEGACY")).status, 200);
+});
+
+test("No Driver clears both modern and legacy assignments so idle vehicles can be deleted", async () => {
+  const manager = await User.findOne({ email: "manager@example.test" });
+  const vehicles = [
+    { _id: "VAN-NO-DRIVER-LEGACY", name: "Legacy Assigned", driverName: "Legacy Technician" },
+    { _id: "VAN-NO-DRIVER-MODERN", name: "ID Assigned", driverId: String(manager._id), driverName: manager.fullName },
+  ];
+  for (const vehicle of vehicles) {
+    await ServiceVan.create(vehicle);
+    assert.equal((await call("delete", `/service-vans/${vehicle._id}`)).status, 409);
+    assert.equal((await call("patch", `/service-vans/${vehicle._id}/driver`, { driverId: "" }, employeeToken)).status, 403);
+    const unassigned = await call("patch", `/service-vans/${vehicle._id}/driver`, { driverId: "" }, managerToken);
+    assert.equal(unassigned.status, 200);
+    assert.equal(unassigned.body.driverId, "");
+    assert.equal(unassigned.body.driverName, "");
+    assert.equal((await call("delete", `/service-vans/${vehicle._id}`)).status, 200);
+  }
+  await ServiceVan.create({ _id: "VAN-NO-DRIVER-WORKING", name: "On Field", driverId: String(manager._id), driverName: manager.fullName, status: "ON_FIELD" });
+  assert.equal((await call("patch", "/service-vans/VAN-NO-DRIVER-WORKING/driver", { driverId: "" })).status, 409);
+  assert.equal((await call("delete", "/service-vans/VAN-NO-DRIVER-WORKING")).status, 409);
+});
+
+test("vehicle deletion requires empty stock and resolved requests and preserves historical records", async () => {
+  const id = "VAN-DELETE-STOCK";
+  await ServiceVan.create({ _id: id, name: "Stocked Vehicle" });
+  const item = await create({ branchId: id, quantity: 2 });
+  assert.equal((await call("delete", `/service-vans/${id}`)).status, 409);
+  assert.equal((await Product.findById(item.id)).quantity, 2);
+  await Product.updateOne({ _id: item.id }, { $set: { quantity: 0 } });
+  const request = await PartRequest.create({ branchId: id, productId: item.id, quantityNeeded: 1, workOrderId: "DELETE-TEST" });
+  assert.equal((await call("delete", `/service-vans/${id}`)).status, 409);
+  await PartRequest.updateOne({ _id: request._id }, { $set: { status: "APPROVED" } });
+  assert.equal((await call("delete", `/service-vans/${id}`)).status, 409);
+  await PartRequest.updateOne({ _id: request._id }, { $set: { status: "DENIED" } });
+  const ledgerCount = await Movement.countDocuments({ branchId: id });
+  assert.equal((await call("delete", `/service-vans/${id}`)).status, 200);
+  assert.ok(await Product.exists({ _id: item.id }));
+  assert.ok(await PartRequest.exists({ _id: request._id }));
+  assert.equal(await Movement.countDocuments({ branchId: id }), ledgerCount);
+});
+
+test("vehicle deletion cannot race a warehouse transfer into leaving orphaned stock", async () => {
+  const id = "VAN-DELETE-RACE";
+  await ServiceVan.create({ _id: id, name: "Race Vehicle" });
+  const item = await create({ quantity: 5 });
+  const [deletion, transfer] = await Promise.all([
+    call("delete", `/service-vans/${id}`),
+    call("post", "/transfers", { branchId, destinationId: id, productId: item.id, quantity: 2, reason: "Deletion race check" }),
+  ]);
+  const vanExists = Boolean(await ServiceVan.exists({ _id: id }));
+  const loaded = await Product.findOne({ branchId: id, sku: item.sku });
+  if (vanExists) {
+    assert.equal(transfer.status, 201);
+    assert.equal(deletion.status, 409);
+    assert.equal(loaded.quantity, 2);
+    assert.equal((await Product.findById(item.id)).quantity, 3);
+  } else {
+    assert.equal(deletion.status, 200);
+    assert.equal(transfer.status, 404);
+    assert.ok(!loaded || loaded.quantity === 0);
+    assert.equal((await Product.findById(item.id)).quantity, 5);
+  }
+});
+
 test("requires a valid password and token", async () => {
   assert.equal((await http.get("/api/products")).status, 401);
   assert.equal(
