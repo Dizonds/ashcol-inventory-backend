@@ -80,14 +80,86 @@ try {
   await page.mouse.up();
   assert.equal(await page.getByRole("dialog").count(), 0, "Dragging a dot must not open the popup");
   await page.getByRole("button", { name: "Reset", exact: true }).click();
-  await page.getByRole("button", { name: "Fullscreen View", exact: true }).click();
+  const compactWidth = (await page.locator(".stock-activity-card").boundingBox()).width;
+  await page.getByRole("button", { name: "Expand chart", exact: true }).click();
   await page.waitForTimeout(300);
+  const fullCard = page.locator(".stock-activity-card.is-expanded");
+  await fullCard.scrollIntoViewIfNeeded();
+  const fullGeometry = () => fullCard.evaluate(card => {
+    const viewport = card.querySelector(".stock-chart-viewport");
+    const svg = card.querySelector(".stock-svg-element");
+    const footer = card.querySelector(".stock-chart-toolbar");
+    return {
+      cardHeight: card.getBoundingClientRect().height,
+      scrollHeight: card.scrollHeight,
+      clientHeight: card.clientHeight,
+      plotHeight: viewport.getBoundingClientRect().height,
+      svgHeight: svg.getBoundingClientRect().height,
+      footerBottom: footer.getBoundingClientRect().bottom,
+      cardBottom: card.getBoundingClientRect().bottom,
+      cardWidth: card.getBoundingClientRect().width,
+      gridWidth: card.parentElement.getBoundingClientRect().width,
+      position: getComputedStyle(card).position,
+      attentionTop: card.parentElement.querySelector(".dashboard-attention-card").getBoundingClientRect().top,
+      recentTop: document.querySelector(".recent-activity-card").getBoundingClientRect().top,
+    };
+  });
+  const desktopGeometry = await fullGeometry();
+  assert.ok(desktopGeometry.plotHeight > 600, "Expanded view should provide a taller plot");
+  assert.ok(desktopGeometry.cardWidth > compactWidth + 50, "Expanded chart should become wider");
+  assert.ok(Math.abs(desktopGeometry.cardWidth - desktopGeometry.gridWidth) <= 1, "Expanded chart should span the dashboard grid");
+  assert.equal(desktopGeometry.position, "relative", "The chart must remain in the page layout");
+  assert.ok(desktopGeometry.attentionTop >= desktopGeometry.cardBottom, "Needs Attention should move below the chart");
+  assert.ok(desktopGeometry.recentTop >= desktopGeometry.cardBottom, "Recent Activity should move below the expanded chart");
+  assert.equal(await page.evaluate(() => document.body.style.overflow), "", "Expanding should not lock page scrolling");
+  const fullCurve = await fullCard.locator(".stock-in-curve").getAttribute("d");
+  const fullPlotBox = await fullCard.locator(".stock-chart-viewport").boundingBox();
+  await page.mouse.move(fullPlotBox.x + fullPlotBox.width / 2, fullPlotBox.y + fullPlotBox.height / 2);
+  await page.mouse.wheel(0, 100);
+  await page.waitForTimeout(800);
+  const zoomedCurve = await fullCard.locator(".stock-in-curve").getAttribute("d");
+  assert.notEqual(zoomedCurve, fullCurve, "Scroll should zoom the expanded chart");
+  await page.mouse.down();
+  await page.mouse.move(fullPlotBox.x + fullPlotBox.width / 2 + 100, fullPlotBox.y + fullPlotBox.height / 2 + 80, { steps: 5 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  assert.notEqual(await fullCard.locator(".stock-in-curve").getAttribute("d"), zoomedCurve, "Dragging should pan the expanded chart");
+  const dragAxis = async (x, y, dx, dy) => {
+    const before = await fullCard.locator(".stock-in-curve").getAttribute("d");
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + dx, y + dy, { steps: 5 });
+    await page.mouse.up();
+    assert.notEqual(await fullCard.locator(".stock-in-curve").getAttribute("d"), before, "Axis dragging should stretch the chart");
+  };
+  await dragAxis(fullPlotBox.x + fullPlotBox.width / 2, fullPlotBox.y + fullPlotBox.height - 15, -60, 0);
+  await dragAxis(fullPlotBox.x + 20, fullPlotBox.y + 120, 0, -40);
+  await fullCard.getByRole("button", { name: "Reset", exact: true }).click();
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1024, height: 768 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(200);
+    const geometry = await fullGeometry();
+    assert.ok(geometry.scrollHeight <= geometry.clientHeight + 1, `No expanded overflow at ${viewport.width}x${viewport.height}`);
+    assert.ok(Math.abs(geometry.svgHeight - geometry.plotHeight) <= 1, "SVG should fill its viewport vertically");
+    assert.ok(geometry.footerBottom <= geometry.cardBottom, "Footer should remain inside the full view");
+    assert.ok(geometry.plotHeight > 100, "The plot should remain visible on smaller screens");
+    assert.ok(geometry.attentionTop >= geometry.cardBottom, "Neighboring cards must not overlap the expanded chart");
+  }
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.waitForTimeout(200);
   await inboundPoint().click();
   await page.getByRole("dialog").waitFor();
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
-  assert.equal(await page.locator(".stock-activity-card.is-fullscreen").count(), 1, "Closing the popup should keep fullscreen active");
-  await page.getByRole("button", { name: "Exit Fullscreen", exact: true }).click();
+  assert.equal(await page.locator(".stock-activity-card.is-expanded").count(), 1, "Closing the popup should keep the chart expanded");
+  const minimize = page.getByRole("button", { name: "Minimize chart", exact: true });
+  assert.equal(await minimize.innerText(), "Minimize", "Minimize should have a visible label");
+  await minimize.click();
+  assert.equal(await page.locator(".stock-activity-card.is-expanded").count(), 0, "Minimize should return to the dashboard chart");
+  const minimizedBox = await page.locator(".stock-activity-card").boundingBox();
+  const attentionBox = await page.locator(".dashboard-attention-card").boundingBox();
+  assert.ok(Math.abs(minimizedBox.width - compactWidth) <= 1, "Minimize should restore the compact width");
+  assert.ok(attentionBox.x >= minimizedBox.x + minimizedBox.width, "Minimize should restore the neighboring card beside the chart");
   await page.getByRole("button", { name: "Auto scale", exact: true }).click();
   const chart = page.locator(".stock-chart-viewport");
   await chart.scrollIntoViewIfNeeded();
@@ -136,7 +208,7 @@ try {
   await page.waitForTimeout(300);
   assert.deepEqual(await snapshot(), barsBefore, "A later timeframe and Bars selection must also be restored");
   assert.deepEqual(errors, []);
-  console.log("Chart browser checks passed: dot popup details across multiple SKUs and movement directions, keyboard access, drag without popup, fullscreen popup closing, 7D default, and chart view restoration.");
+  console.log("Chart browser checks passed: dot popup details across multiple SKUs and movement directions, keyboard access, drag without popup, expanded layout and popup closing, 7D default, and chart view restoration.");
 } finally {
   if (browser) await browser.close();
   if (server) await new Promise(resolve => server.close(resolve));
