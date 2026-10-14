@@ -12,6 +12,7 @@ import {
   checkQuantity,
   transaction,
   changeStock,
+  lockServiceVan,
 } from "../helpers.js";
 
 const router = Router();
@@ -43,7 +44,8 @@ router.post("/requests", (req, res, next) => {
         : await RequestReference.findById(requestId);
       if (!reference) fail("Request ID not found. Open a new request and try again.");
       if (reference.requestedBy !== String(req.user._id)) fail("This request ID belongs to another account.", 403);
-      return transaction((session) => {
+      return transaction(async (session) => {
+        await lockServiceVan(branchId, session);
         // Touch the product so request creation cannot race with archiving.
         return Product.findOneAndUpdate(
           { _id: req.body.productId, branchId, archived: false },

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { ServiceVan, Brand, User, Supplier } from "../models.js";
+import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter } from "../models.js";
 import { admin, manage, hashPassword } from "../auth.js";
-import { text, fail, json } from "../helpers.js";
+import { text, fail, json, transaction, lockServiceVan } from "../helpers.js";
 
 const router = Router();
 
@@ -13,7 +13,7 @@ function isAssignedToUser(van, user) {
   );
 }
 
-function resolveDriver(driverId, driverName) {
+function resolveDriver(driverId, driverName, session) {
   const id = text(driverId || "", "Driver", false);
   const name = text(driverName || "", "Driver", false);
   if (!id && !name) return Promise.resolve({ driverId: "", driverName: "" });
@@ -25,13 +25,18 @@ function resolveDriver(driverId, driverName) {
           { fullName: name.replace(/\s+\([^)]*\)$/, "") },
         ],
       });
-  return lookup.then((user) => {
+  return lookup.session(session || null).then(async (user) => {
     if (!user) fail("Selected driver/technician was not found.", 404);
+    if (session) {
+      // Coordinate assignment with account removal so deleted users cannot become drivers.
+      user = await User.findByIdAndUpdate(user._id, { $inc: { __v: 1 } }, { new: true, session });
+      if (!user) fail("Selected driver/technician was not found.", 404);
+    }
     return { driverId: String(user._id), driverName: user.fullName };
   });
 }
 
-function ensureDriverAvailable(driver, vehicleId) {
+function ensureDriverAvailable(driver, vehicleId, session) {
   if (!driver.driverId) return Promise.resolve();
   return ServiceVan.findOne({
     _id: { $ne: vehicleId },
@@ -42,7 +47,7 @@ function ensureDriverAvailable(driver, vehicleId) {
       { driverName: `${driver.driverName} (MANAGER)` },
       { driverName: `${driver.driverName} (ADMIN)` },
     ],
-  }).then((existing) => {
+  }).session(session || null).then((existing) => {
     if (existing)
       fail(`${driver.driverName} is already assigned to ${existing.name}.`, 409);
   });
@@ -74,18 +79,34 @@ router.post("/service-vans", admin, (req, res, next) => {
   )
     ? req.body.status
     : "AVAILABLE";
-  resolveDriver(req.body.driverId, req.body.driverName)
-    .then((driver) => ensureDriverAvailable(driver, id).then(() => driver))
-    .then((driver) => ServiceVan.create({
-      _id: id,
-      name: text(req.body.name, "Vehicle name"),
-      plateNumber,
-      ...driver,
-      status,
-    }))
+  transaction(async (session) => {
+    const driver = await resolveDriver(req.body.driverId, req.body.driverName, session);
+    await ensureDriverAvailable(driver, id, session);
+    const [vehicle] = await ServiceVan.create([{
+      _id: id, name: text(req.body.name, "Vehicle name"), plateNumber, ...driver, status,
+    }], { session });
+    return vehicle;
+  })
     .then((item) => res.status(201).json(json(item)))
     .catch(next);
 });
+// Only idle, unassigned, empty vehicles can be removed.
+router.delete("/service-vans/:id", admin, (req, res, next) => {
+  if (req.params.id === "LOCAL-WAREHOUSE") fail("The warehouse is not a service vehicle.");
+  transaction(async (session) => {
+    const van = await lockServiceVan(req.params.id, session);
+    if (van.driverId?.trim() || van.driverName?.trim() || van.status !== "AVAILABLE")
+      fail("Vehicle is busy. Unassign its driver and set it to Available before deleting it.", 409);
+    if (await Product.exists({ branchId: van._id, quantity: { $gt: 0 } }).session(session))
+      fail("Vehicle is busy. Return all stock to the warehouse before deleting it.", 409);
+    if (await PartRequest.exists({ branchId: van._id, status: { $in: ["PENDING", "APPROVED"] } }).session(session))
+      fail("Vehicle is busy. Resolve its open material requests before deleting it.", 409);
+    await ServiceVan.deleteOne({ _id: van._id }, { session });
+  })
+    .then(() => res.json({ success: true, message: "Service vehicle deleted." }))
+    .catch(next);
+});
+
 // Technicians/drivers, managers and admins can update van status (e.g. arrived, on field, available)
 router.patch("/service-vans/:id/status", (req, res, next) => {
   const status = text(req.body.status, "Status");
@@ -115,25 +136,24 @@ router.patch("/service-vans/:id/status", (req, res, next) => {
 });
 // Assign driver / technician to a van (Managers & Admins)
 router.patch("/service-vans/:id/driver", manage, (req, res, next) => {
-  ServiceVan.findById(req.params.id)
-    .then((van) => {
+  transaction(async (session) => {
+      const van = await ServiceVan.findById(req.params.id).session(session);
       if (!van) fail("Service vehicle not found.", 404);
       if (["ON_FIELD", "ARRIVED"].includes(van.status))
         fail(
           "The driver cannot be changed after the vehicle has been dispatched or has arrived on site.",
           409,
         );
-      return resolveDriver(req.body.driverId, req.body.driverName).then((driver) =>
-        ensureDriverAvailable(driver, req.params.id).then(() => driver),
-      );
-    })
-    .then((driver) =>
-      ServiceVan.findByIdAndUpdate(
+      const driver = await resolveDriver(req.body.driverId, req.body.driverName, session);
+      await ensureDriverAvailable(driver, req.params.id, session);
+      const updated = await ServiceVan.findByIdAndUpdate(
         req.params.id,
         { $set: driver },
-        { new: true },
-      ),
-    )
+        { new: true, session },
+      );
+      if (!updated) fail("Service vehicle not found.", 404);
+      return updated;
+    })
     .then((item) => {
       if (!item) fail("Service vehicle not found.", 404);
       res.json(json(item));
@@ -201,6 +221,31 @@ router.get("/users", manage, (req, res, next) => {
   User.find()
     .sort({ fullName: 1 })
     .then((items) => res.json(items.map(json)))
+    .catch(next);
+});
+router.delete("/users/:id", admin, (req, res, next) => {
+  transaction(async (session) => {
+    // Serialize removals so two administrators cannot remove each other at once.
+    await Counter.findOneAndUpdate(
+      { _id: "user-administration" }, { $inc: { value: 1 } }, { upsert: true, new: true, session },
+    );
+    const administrator = await User.findById(req.user._id).session(session);
+    if (!administrator || administrator.role !== "ADMIN") fail("Your session expired. Please sign in.", 401);
+    const user = await User.findById(req.params.id).session(session);
+    if (!user) fail("User account not found.", 404);
+    if (String(user._id) === String(administrator._id)) fail("You cannot remove your own signed-in account.", 409);
+    if (user.role === "ADMIN" && await User.countDocuments({ role: "ADMIN" }).session(session) <= 1)
+      fail("The last administrator account cannot be removed.", 409);
+    const assignedVehicle = await ServiceVan.findOne({ $or: [
+      { driverId: String(user._id) },
+      { driverName: user.fullName },
+      { driverName: `${user.fullName} (${user.role})` },
+    ] }).session(session);
+    if (assignedVehicle) fail(`This user is assigned to ${assignedVehicle.name}. Select No Driver on that vehicle before removing the account.`, 409);
+    await Session.deleteMany({ userId: user._id }, { session });
+    await User.deleteOne({ _id: user._id }, { session });
+  })
+    .then(() => res.json({ success: true, message: "User account removed." }))
     .catch(next);
 });
 router.post("/users", admin, (req, res, next) => {

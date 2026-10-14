@@ -175,7 +175,17 @@ export function inventoryRecordJson(doc) {
 export function transaction(work) {
   return mongoose.connection.transaction(work);
 }
-export function recordMovement(item, delta, details, user, session) {
+export async function lockServiceVan(branchId, session) {
+  if (branchId === "LOCAL-WAREHOUSE") return;
+  const van = await ServiceVan.findByIdAndUpdate(
+    branchId, { $inc: { __v: 1 } }, { new: true, session },
+  );
+  if (!van) fail("Service vehicle not found.", 404);
+  return van;
+}
+export async function recordMovement(item, delta, details, user, session) {
+  // Inventory writes and vehicle deletion must not pass each other unnoticed.
+  await lockServiceVan(item.branchId, session);
   return Movement.create(
     [
       {
