@@ -135,6 +135,57 @@ async function removalAccount(label, role = "EMPLOYEE") {
   return response.body;
 }
 
+test("all roles can edit their profile without granting themselves a different role or email", async () => {
+  for (const role of ["ADMIN", "MANAGER", "EMPLOYEE"]) {
+    const user = await removalAccount(`profile-${role.toLowerCase()}`, role);
+    const login = await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" });
+    const result = await call("patch", "/auth/me", { firstName: "Updated", lastName: "Profile", availability: "BUSY", role: "ADMIN", email: "forged@example.test" }, login.body.token);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.fullName, "Updated Profile");
+    assert.equal(result.body.availability, "BUSY");
+    assert.equal(result.body.role, role);
+    assert.equal(result.body.email, user.email);
+    assert.equal(result.body.passwordHash, undefined);
+  }
+});
+
+test("personal password changes require the current password and revoke other sessions", async () => {
+  const user = await removalAccount("profile-password");
+  const login = async () => (await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" })).body.token;
+  const token = await login(), otherToken = await login();
+  const body = { firstName: "Profile", lastName: "Password", availability: "AWAY", password: "Changed-password-2026", currentPassword: "wrong" };
+  assert.equal((await call("patch", "/auth/me", { ...body, currentPassword: "" }, token)).status, 400);
+  assert.equal((await call("patch", "/auth/me", body, token)).status, 400);
+  assert.equal((await call("patch", "/auth/me", { ...body, currentPassword: "Removal-test-2026" }, token)).status, 200);
+  assert.equal((await call("get", "/auth/me", {}, token)).status, 200);
+  assert.equal((await call("get", "/auth/me", {}, otherToken)).status, 401);
+  assert.equal((await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" })).status, 401);
+  assert.equal((await http.post("/api/auth/login").send({ email: user.email, password: body.password })).status, 200);
+});
+
+test("admin account editing changes email, role and password and updates assigned driver names", async () => {
+  const user = await removalAccount("profile-admin-edit");
+  const login = await http.post("/api/auth/login").send({ email: user.email, password: "Removal-test-2026" });
+  await ServiceVan.create({ _id: "VAN-PROFILE", name: "Profile Van", driverId: user.id, driverName: user.fullName });
+  const body = { firstName: "Promoted", lastName: "Manager", email: "promoted@example.test", role: "MANAGER", availability: "AVAILABLE", password: "Admin-reset-2026" };
+  assert.equal((await call("patch", `/users/${user.id}`, body, employeeToken)).status, 403);
+  assert.equal((await call("patch", `/users/${user.id}`, body, managerToken)).status, 403);
+  const edited = await call("patch", `/users/${user.id}`, body);
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.role, "MANAGER");
+  assert.equal(edited.body.email, body.email);
+  assert.equal(edited.body.passwordHash, undefined);
+  assert.equal((await ServiceVan.findById("VAN-PROFILE")).driverName, "Promoted Manager");
+  assert.equal((await call("get", "/auth/me", {}, login.body.token)).status, 401);
+  assert.equal((await http.post("/api/auth/login").send({ email: body.email, password: body.password })).status, 200);
+  assert.equal((await call("patch", `/users/${user.id}`, { ...body, role: "ADMIN", password: "" })).status, 200);
+  assert.equal((await call("patch", `/users/${user.id}`, { ...body, role: "EMPLOYEE", password: "" })).status, 200);
+  const administrator = (await call("get", "/auth/me")).body;
+  assert.equal((await call("patch", `/users/${administrator.id}`, { ...body, email: administrator.email, role: "EMPLOYEE", password: "" })).status, 409);
+  assert.equal((await call("patch", `/users/${user.id}`, { ...body, email: administrator.email, password: "" })).status, 409);
+  assert.equal((await call("patch", `/users/${user.id}`, { ...body, availability: "INVALID", password: "" })).status, 400);
+});
+
 test("user removal is admin-only, protects the signed-in administrator, and permits backup admins", async () => {
   const account = await removalAccount("removal-backup", "ADMIN");
   assert.equal((await call("delete", `/users/${account.id}`, {}, managerToken)).status, 403);
@@ -212,6 +263,24 @@ test("account removal and driver assignment cannot leave a deleted driver on a v
     assert.equal(assignment.status, 404);
     assert.equal(van.driverId, "");
   }
+});
+
+test("vehicle registration saves the five supported types and rejects other classifications", async () => {
+  const types = ["Cab Chassis", "Cargo Van", "Pickup", "Hatchback", "Micro SUV"];
+  for (const [index, vehicleType] of types.entries()) {
+    const result = await call("post", "/service-vans", { id: `VAN-TYPE-${index}`, name: `Type Test ${index}`, vehicleType });
+    assert.equal(result.status, 201);
+    assert.equal(result.body.vehicleType, vehicleType);
+    assert.equal((await ServiceVan.findById(result.body.id)).vehicleType, vehicleType);
+  }
+  const invalid = await call("post", "/service-vans", { id: "VAN-TYPE-INVALID", name: "Invalid Type", vehicleType: "Sedan" });
+  assert.equal(invalid.status, 400);
+  assert.equal(await ServiceVan.exists({ _id: "VAN-TYPE-INVALID" }), null);
+  const legacy = await call("post", "/service-vans", { id: "VAN-TYPE-LEGACY", name: "Legacy Payload" });
+  assert.equal(legacy.status, 201);
+  assert.equal(legacy.body.vehicleType, "");
+  const list = await call("get", "/service-vans");
+  assert.equal(list.body.find((van) => van.id === "VAN-TYPE-2").vehicleType, "Pickup");
 });
 
 test("only administrators can delete idle, unassigned service vehicles", async () => {

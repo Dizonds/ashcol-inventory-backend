@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter } from "../models.js";
+import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter, VEHICLE_TYPES } from "../models.js";
 import { admin, manage, hashPassword } from "../auth.js";
 import { text, fail, json, transaction, lockServiceVan } from "../helpers.js";
+import { updateAccount } from "../accounts.js";
 
 const router = Router();
 
@@ -74,6 +75,8 @@ router.post("/service-vans", admin, (req, res, next) => {
   if (!/^[A-Za-z0-9-]+$/.test(id))
     fail("Use letters, numbers and hyphens for vehicle IDs.");
   const plateNumber = text(req.body.plateNumber || "", "Plate number", false);
+  const vehicleType = text(req.body.vehicleType || "", "Vehicle type", false);
+  if (vehicleType && !VEHICLE_TYPES.includes(vehicleType)) fail("Choose a valid vehicle type.");
   const status = ["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"].includes(
     req.body.status,
   )
@@ -83,7 +86,7 @@ router.post("/service-vans", admin, (req, res, next) => {
     const driver = await resolveDriver(req.body.driverId, req.body.driverName, session);
     await ensureDriverAvailable(driver, id, session);
     const [vehicle] = await ServiceVan.create([{
-      _id: id, name: text(req.body.name, "Vehicle name"), plateNumber, ...driver, status,
+      _id: id, name: text(req.body.name, "Vehicle name"), plateNumber, vehicleType, ...driver, status,
     }], { session });
     return vehicle;
   })
@@ -247,6 +250,9 @@ router.delete("/users/:id", admin, (req, res, next) => {
   })
     .then(() => res.json({ success: true, message: "User account removed." }))
     .catch(next);
+});
+router.patch("/users/:id", admin, (req, res, next) => {
+  updateAccount(req, req.params.id, true).then((user) => res.json(user)).catch(next);
 });
 router.post("/users", admin, (req, res, next) => {
   const email = text(req.body.email, "Email").toLowerCase();

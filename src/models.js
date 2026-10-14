@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const options = { timestamps: true };
+export const VEHICLE_TYPES = ["Cab Chassis", "Cargo Van", "Pickup", "Hatchback", "Micro SUV"];
 const productSchema = new mongoose.Schema(
   {
     branchId: { type: String, required: true },
@@ -96,6 +97,7 @@ const userSchema = new mongoose.Schema(
     firstName: { type: String, trim: true, default: "" },
     lastName: { type: String, trim: true, default: "" },
     fullName: { type: String, required: true },
+    availability: { type: String, enum: ["AVAILABLE", "BUSY", "AWAY"], default: "AVAILABLE" },
     role: {
       type: String,
       enum: ["ADMIN", "MANAGER", "EMPLOYEE"],
@@ -184,6 +186,7 @@ export const ServiceVan = mongoose.model(
         _id: String,
         name: { type: String, required: true },
         plateNumber: { type: String, default: "" },
+        vehicleType: { type: String, enum: ["", ...VEHICLE_TYPES], default: "" },
         driverId: { type: String, default: "" },
         driverName: { type: String, default: "" },
         status: {
