@@ -7,7 +7,11 @@ import {
   User,
   Session,
   PartRequest,
+  RequestReference,
+  Counter,
+  MovementTicket,
 } from "./models.js";
+import { assignExistingRequestNumbers } from "./request-numbers.js";
 
 export function initializeDatabase() {
   return mongoose.connection.db
@@ -29,11 +33,12 @@ export function initializeDatabase() {
           "Legacy inventory needs a branch assignment. Back up the database and run npm run migrate -- BRANCH_ID. See SETUP.md.",
         );
       return Promise.all(
-        [Product, Movement, ServiceVan, Brand, User, Session, PartRequest].map(
+        [Product, Movement, ServiceVan, Brand, User, Session, PartRequest, RequestReference, Counter, MovementTicket].map(
           (model) => model.createIndexes(),
         ),
       );
     })
+    .then(() => assignExistingRequestNumbers())
     .then(() => Brand.countDocuments())
     .then((count) => {
       if (count === 0)

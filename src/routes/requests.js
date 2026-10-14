@@ -1,33 +1,49 @@
 import { Router } from "express";
-import { Product, PartRequest } from "../models.js";
+import mongoose from "mongoose";
+import { Product, PartRequest, RequestReference } from "../models.js";
+import { reserveRequestReference } from "../request-numbers.js";
 import { manage } from "../auth.js";
 import {
   branchScope,
   number,
   text,
   fail,
-  json,
+  inventoryRecordJson,
   checkQuantity,
   transaction,
   changeStock,
-  generateTicket,
 } from "../helpers.js";
 
 const router = Router();
+const requestJson = (request) => inventoryRecordJson(request);
+
+router.get("/requests/reference", (req, res, next) => {
+  reserveRequestReference(String(req.user._id))
+    .then((reference) => res.json({ id: String(reference._id), requestNumber: reference.requestNumber }))
+    .catch(next);
+});
 router.get("/requests", (req, res, next) => {
   branchScope(req, req.query.branchId)
-    .then((branchId) => PartRequest.find({ branchId }).sort({ createdAt: -1 }))
-    .then((items) => res.json(items.map(json)))
+    .then((branchId) => PartRequest.find({ branchId }).sort({ createdAt: -1 }).populate("productId", "brand itemType category"))
+    .then((items) => res.json(items.map(requestJson)))
     .catch(next);
 });
 router.post("/requests", (req, res, next) => {
   const quantityNeeded = number(req.body.quantityNeeded, "Requested quantity");
   if (!quantityNeeded) fail("Requested quantity must be positive.");
-  const workOrderId = text(req.body.workOrderId, "Job / work-order number");
+  if (req.body.requestId !== undefined &&
+      (typeof req.body.requestId !== "string" || !/^[a-f0-9]{24}$/i.test(req.body.requestId)))
+    fail("Invalid request ID.");
+  const requestId = new mongoose.Types.ObjectId(req.body.requestId);
   const notes = text(req.body.notes || "", "Notes", false);
   branchScope(req, req.body.branchId)
-    .then((branchId) =>
-      transaction((session) => {
+    .then(async (branchId) => {
+      const reference = req.body.requestId === undefined
+        ? await reserveRequestReference(String(req.user._id), requestId)
+        : await RequestReference.findById(requestId);
+      if (!reference) fail("Request ID not found. Open a new request and try again.");
+      if (reference.requestedBy !== String(req.user._id)) fail("This request ID belongs to another account.", 403);
+      return transaction((session) => {
         // Touch the product so request creation cannot race with archiving.
         return Product.findOneAndUpdate(
           { _id: req.body.productId, branchId, archived: false },
@@ -40,24 +56,30 @@ router.post("/requests", (req, res, next) => {
             return PartRequest.create(
               [
                 {
+                  _id: requestId,
+                  requestNumber: reference.requestNumber,
                   branchId,
                   productId: item._id,
                   sku: item.sku,
                   itemName: item.name,
+                  itemType: item.itemType,
+                  category: item.category,
+                  brand: item.brand,
                   unitOfMeasure: item.unitOfMeasure,
                   quantityNeeded,
-                  workOrderId,
+                  workOrderId: reference.requestNumber,
                   notes,
                   requestedBy: String(req.user._id),
                   requestedByName: req.user.fullName,
+                  history: [{ status: "PENDING", performedByName: req.user.fullName, at: new Date() }],
                 },
               ],
               { session },
             );
           })
-          .then(([request]) => json(request));
-      }),
-    )
+          .then(([request]) => requestJson(request));
+      });
+    })
     .then((item) => res.status(201).json(item))
     .catch(next);
 });
@@ -84,7 +106,22 @@ router.patch("/requests/:id", manage, (req, res, next) => {
               (status === "FULFILLED" && request.status !== "APPROVED")
             )
               fail("This request has already changed. Refresh the list.", 409);
+            if (!request.history.length) {
+              request.history.push({ status: "PENDING", performedByName: request.requestedByName, at: request.createdAt });
+              if (request.reviewedAt) request.history.push({
+                status: request.status === "DENIED" ? "DENIED" : "APPROVED",
+                performedByName: request.reviewedByName,
+                at: request.reviewedAt,
+                reason: request.decisionReason,
+              });
+            }
             request.status = status;
+            request.history.push({
+              status,
+              performedByName: req.user.fullName,
+              at: new Date(),
+              reason: decisionReason,
+            });
             if (status === "FULFILLED") {
               request.fulfilledByName = req.user.fullName;
               request.fulfilledAt = new Date();
@@ -95,7 +132,8 @@ router.patch("/requests/:id", manage, (req, res, next) => {
                 {
                   movementType: "REQUEST_ISSUE",
                   reason: "Approved material request fulfilled",
-                  workOrderId: request.workOrderId,
+                  workOrderId: request.requestNumber,
+                  requestNumber: request.requestNumber,
                   referenceId: String(request._id),
                 },
                 req.user,
@@ -107,7 +145,7 @@ router.patch("/requests/:id", manage, (req, res, next) => {
             request.decisionReason = decisionReason;
             return request.save({ session });
           })
-          .then(json);
+          .then(requestJson);
       }),
     )
     .then((item) => res.json(item))

@@ -307,15 +307,92 @@ test("rejects invalid reasons and empty notes on stock movements", async () => {
   assert.equal((await movement(item, 1, { notes: "" })).status, 400);
 });
 
+test("movement confirmation reserves the exact saved ticket and cannot post it twice", async () => {
+  const item = await create();
+  const reference = await call("post", "/movement-tickets", { movementType: "STOCK_IN" }, managerToken);
+  assert.equal(reference.status, 201);
+  assert.match(reference.body.referenceId, /^STI\d{4,}$/);
+  const body = {
+    branchId, delta: 2, reason: "Supplier Delivery / Restock", notes: "Receipt 100",
+    referenceId: reference.body.referenceId,
+  };
+  assert.equal((await call("patch", `/products/${item.id}/stock`, body, adminToken)).status, 403);
+  const posts = await Promise.all([
+    call("patch", `/products/${item.id}/stock`, body, managerToken),
+    call("patch", `/products/${item.id}/stock`, body, managerToken),
+  ]);
+  assert.deepEqual(posts.map((response) => response.status).sort(), [200, 409]);
+  assert.equal((await Product.findById(item.id)).quantity, 7);
+  const entries = await Movement.find({ referenceId: reference.body.referenceId });
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].brand, item.brand);
+  assert.equal(entries[0].itemType, item.itemType);
+  assert.equal(entries[0].category, item.category);
+});
+
+test("stock-out ticket validation and failed postings preserve a retryable reservation", async () => {
+  const item = await create({ quantity: 2 });
+  const reference = await call("post", "/movement-tickets", { movementType: "STOCK_OUT" });
+  assert.equal(reference.status, 201);
+  assert.match(reference.body.referenceId, /^STO\d{4,}$/);
+  assert.equal((await call("post", "/movement-tickets", { movementType: "STOCK_IN" }, employeeToken)).status, 403);
+  assert.equal((await call("post", "/movement-tickets", { movementType: "OTHER" })).status, 400);
+  const body = { branchId, delta: -3, reason: "Parts Sale", notes: "Invoice 100", referenceId: reference.body.referenceId };
+  assert.equal((await call("patch", `/products/${item.id}/stock`, body)).status, 409);
+  assert.equal((await Product.findById(item.id)).quantity, 2);
+  assert.equal((await call("patch", `/products/${item.id}/stock`, { ...body, delta: 1, reason: "Supplier Delivery / Restock" })).status, 400);
+  assert.equal((await call("patch", `/products/${item.id}/stock`, { ...body, referenceId: "STO99999999" })).status, 400);
+  assert.equal((await call("patch", `/products/${item.id}/stock`, { ...body, delta: -1 })).status, 200);
+  assert.equal((await Product.findById(item.id)).quantity, 1);
+});
+
+test("movement tickets are unique when several confirmations open simultaneously", async () => {
+  const results = await Promise.all(Array.from({ length: 6 }, () =>
+    call("post", "/movement-tickets", { movementType: "STOCK_IN" })));
+  for (const response of results) assert.equal(response.status, 201);
+  assert.equal(new Set(results.map((response) => response.body.referenceId)).size, 6);
+});
+
+test("older ledger and request rows get catalog details while saved snapshots stay unchanged", async () => {
+  const item = await create();
+  const legacyMovement = await Movement.create({ branchId, productId: item.id, itemName: item.name, quantityDelta: 1 });
+  const legacyRequest = await PartRequest.create({ branchId, productId: item.id, quantityNeeded: 1, workOrderId: "OLD-JOB" });
+  const requests = await call("get", "/requests", { branchId });
+  const request = requests.body.find((entry) => entry.id === String(legacyRequest._id));
+  assert.equal(request.brand, item.brand);
+  assert.equal(request.itemType, item.itemType);
+  assert.equal(request.category, item.category);
+  assert.equal(request.productId, item.id);
+  const ledger = await call("get", "/movements", { branchId, search: item.name, pageSize: 100 });
+  const entry = ledger.body.items.find((entry) => entry.id === String(legacyMovement._id));
+  assert.equal(entry.brand, item.brand);
+  assert.equal(entry.itemType, item.itemType);
+  assert.equal(entry.category, item.category);
+  await movement(item, 1);
+  const snapshot = await Movement.findOne({ productId: item.id, movementType: "STOCK_IN" });
+  await Product.updateOne({ _id: item.id }, { $set: { brand: "Daikin" } });
+  const savedLedger = await call("get", "/movements", { branchId, search: snapshot.referenceId });
+  assert.equal(savedLedger.body.items[0].brand, item.brand);
+});
+
 test("request approval does not deduct stock; fulfillment deducts exactly once", async () => {
   const item = await create({ quantity: 5 });
+  const reference = await call("get", "/requests/reference", {}, employeeToken);
+  assert.equal(reference.status, 200);
+  assert.match(reference.body.requestNumber, /^REQ\d{4,}$/);
   const response = await call(
     "post",
     "/requests",
-    { branchId, productId: item.id, quantityNeeded: 2, workOrderId: "AC-2026" },
+    { branchId, productId: item.id, quantityNeeded: 2, requestId: reference.body.id },
     employeeToken,
   );
   assert.equal(response.status, 201);
+  assert.equal(response.body.id, reference.body.id);
+  assert.equal(response.body.requestNumber, reference.body.requestNumber);
+  assert.equal(response.body.workOrderId, reference.body.requestNumber);
+  assert.equal(response.body.brand, item.brand);
+  assert.equal(response.body.itemType, item.itemType);
+  assert.equal(response.body.category, item.category);
   const path = `/requests/${response.body.id}`;
   assert.equal(
     (await call("patch", path, { branchId, status: "FULFILLED" })).status,
@@ -342,6 +419,70 @@ test("request approval does not deduct stock; fulfillment deducts exactly once",
     await Movement.countDocuments({ referenceId: response.body.id }),
     1,
   );
+  const list = await call("get", "/requests", { branchId }, employeeToken);
+  const saved = list.body.find((entry) => entry.id === response.body.id);
+  assert.equal(saved.requestNumber, reference.body.requestNumber);
+  assert.deepEqual(saved.history.map((event) => event.status), ["PENDING", "APPROVED", "FULFILLED"]);
+  assert.deepEqual(saved.history.map((event) => event.performedByName), ["Test Employee", "Test Manager", "Test Admin"]);
+  const ledger = await call("get", "/movements", { branchId, search: reference.body.requestNumber });
+  assert.equal(ledger.body.total, 1);
+  assert.equal(ledger.body.items[0].referenceId, response.body.id);
+  assert.equal(ledger.body.items[0].requestNumber, reference.body.requestNumber);
+});
+
+test("request IDs are unique and reject malformed or reused IDs", async () => {
+  const item = await create();
+  const first = await call("get", "/requests/reference", {}, employeeToken);
+  const second = await call("get", "/requests/reference", {}, employeeToken);
+  assert.notEqual(first.body.id, second.body.id);
+  assert.equal(Number(second.body.requestNumber.slice(3)), Number(first.body.requestNumber.slice(3)) + 1);
+  const body = { branchId, productId: item.id, quantityNeeded: 1, requestId: first.body.id };
+  assert.equal((await call("post", "/requests", { ...body, requestId: "invalid" }, employeeToken)).status, 400);
+  assert.equal((await call("post", "/requests", { ...body, requestId: String(new mongoose.Types.ObjectId()) }, employeeToken)).status, 400);
+  assert.equal((await call("post", "/requests", body, managerToken)).status, 403);
+  assert.equal((await call("post", "/requests", body, employeeToken)).status, 201);
+  assert.equal((await call("post", "/requests", body, employeeToken)).status, 409);
+  assert.equal((await Product.findById(item.id)).quantity, 5);
+});
+
+test("short request numbers remain unique under concurrency and database reinitialization", async () => {
+  await initializeDatabase();
+  const references = await Promise.all(Array.from({ length: 8 }, () =>
+    call("get", "/requests/reference", {}, employeeToken)));
+  const values = references.map((response) => {
+    assert.equal(response.status, 200);
+    assert.match(response.body.requestNumber, /^REQ\d{4,}$/);
+    return Number(response.body.requestNumber.slice(3));
+  });
+  assert.equal(new Set(values).size, 8);
+  await initializeDatabase();
+  const next = await call("get", "/requests/reference", {}, employeeToken);
+  assert.equal(Number(next.body.requestNumber.slice(3)), Math.max(...values) + 1);
+});
+
+test("existing requests receive stable short numbers without losing history or ledger links", async () => {
+  const item = await create();
+  const legacy = await PartRequest.create({
+    branchId, productId: item.id, quantityNeeded: 1, workOrderId: "OLD-JOB-123",
+    status: "FULFILLED", requestedBy: "legacy-user", requestedByName: "Legacy Technician",
+    history: [{ status: "PENDING", performedByName: "Legacy Technician", at: new Date() }],
+  });
+  const movement = await Movement.create({
+    branchId, productId: item.id, referenceId: String(legacy._id),
+    movementType: "REQUEST_ISSUE", workOrderId: "OLD-JOB-123", quantityDelta: -1,
+  });
+  await initializeDatabase();
+  const saved = await PartRequest.findById(legacy._id);
+  assert.match(saved.requestNumber, /^REQ\d{4,}$/);
+  assert.equal(saved.workOrderId, "OLD-JOB-123");
+  assert.equal(saved.history[0].performedByName, "Legacy Technician");
+  const ledger = await call("get", "/movements", { branchId, search: saved.requestNumber });
+  assert.equal(ledger.body.total, 1);
+  assert.equal(ledger.body.items[0].id, String(movement._id));
+  assert.equal(ledger.body.items[0].referenceId, String(legacy._id));
+  assert.equal(ledger.body.items[0].workOrderId, "OLD-JOB-123");
+  await initializeDatabase();
+  assert.equal((await PartRequest.findById(legacy._id)).requestNumber, saved.requestNumber);
 });
 
 test("insufficient-stock fulfillment rolls back the request status", async () => {
@@ -362,6 +503,7 @@ test("insufficient-stock fulfillment rolls back the request status", async () =>
     (await PartRequest.findById(response.body.id)).status,
     "APPROVED",
   );
+  assert.deepEqual((await PartRequest.findById(response.body.id)).history.map((event) => event.status), ["PENDING", "APPROVED"]);
   assert.equal(
     (await call("patch", path, { branchId, status: "DENIED" })).status,
     400,
@@ -376,6 +518,9 @@ test("insufficient-stock fulfillment rolls back the request status", async () =>
     ).status,
     200,
   );
+  const denied = await PartRequest.findById(response.body.id);
+  assert.deepEqual(denied.history.map((event) => event.status), ["PENDING", "APPROVED", "DENIED"]);
+  assert.equal(denied.history.at(-1).reason, "Cancelled job");
 });
 
 test("transfers save two linked movements and preserve the combined quantity", async () => {

@@ -162,6 +162,15 @@ export function json(doc) {
   delete result.__v;
   return result;
 }
+export function inventoryRecordJson(doc) {
+  const result = json(doc);
+  const product = doc.productId;
+  for (const field of ["brand", "itemType", "category"]) {
+    result[field] = doc[field] || product?.[field] || "";
+  }
+  if (product?._id) result.productId = String(product._id);
+  return result;
+}
 // One transaction saves the balance and audit entry together (requires a replica set).
 export function transaction(work) {
   return mongoose.connection.transaction(work);
@@ -174,6 +183,9 @@ export function recordMovement(item, delta, details, user, session) {
         branchId: item.branchId,
         sku: item.sku,
         itemName: item.name,
+        itemType: item.itemType,
+        category: item.category,
+        brand: item.brand,
         unitOfMeasure: item.unitOfMeasure,
         quantityDelta: delta,
         beforeQuantity: Math.round((item.quantity - delta) * 1000) / 1000,

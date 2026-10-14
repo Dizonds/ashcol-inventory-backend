@@ -64,6 +64,9 @@ const movementSchema = new mongoose.Schema(
     branchId: String,
     sku: String,
     itemName: String,
+    itemType: String,
+    category: String,
+    brand: String,
     unitOfMeasure: String,
     movementType: String,
     quantityDelta: Number,
@@ -72,6 +75,7 @@ const movementSchema = new mongoose.Schema(
     reason: String,
     workOrderId: String,
     referenceId: String,
+    requestNumber: String,
     performedBy: String,
     performedByName: String,
     date: String, // Kept for imported, date-only legacy records.
@@ -109,6 +113,7 @@ const sessionSchema = new mongoose.Schema({
 });
 const requestSchema = new mongoose.Schema(
   {
+    requestNumber: { type: String, unique: true, sparse: true },
     branchId: { type: String, required: true },
     productId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -117,6 +122,9 @@ const requestSchema = new mongoose.Schema(
     },
     sku: String,
     itemName: String,
+    itemType: String,
+    category: String,
+    brand: String,
     unitOfMeasure: String,
     workOrderId: { type: String, required: true },
     quantityNeeded: { type: Number, required: true, min: 0 },
@@ -133,6 +141,13 @@ const requestSchema = new mongoose.Schema(
     decisionReason: String,
     fulfilledByName: String,
     fulfilledAt: Date,
+    history: [{
+      _id: false,
+      status: { type: String, enum: ["PENDING", "APPROVED", "DENIED", "FULFILLED"], required: true },
+      performedByName: String,
+      at: { type: Date, required: true },
+      reason: String,
+    }],
   },
   options,
 );
@@ -146,6 +161,20 @@ export const Movement = mongoose.model(
 export const User = mongoose.model("User", userSchema);
 export const Session = mongoose.model("Session", sessionSchema);
 export const PartRequest = mongoose.model("PartRequest", requestSchema);
+export const RequestReference = mongoose.model("RequestReference", new mongoose.Schema({
+  requestNumber: { type: String, required: true, unique: true },
+  requestedBy: String,
+}));
+export const Counter = mongoose.model("Counter", new mongoose.Schema({
+  _id: String,
+  value: { type: Number, required: true },
+}));
+export const MovementTicket = mongoose.model("MovementTicket", new mongoose.Schema({
+  _id: String,
+  movementType: { type: String, enum: ["STOCK_IN", "STOCK_OUT"], required: true },
+  requestedBy: { type: String, required: true },
+  usedAt: Date,
+}));
 // Mobile fleet records live separately from the fixed Taguig warehouse.
 export const ServiceVan = mongoose.model(
   "ServiceVan",

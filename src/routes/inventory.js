@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
-import { Product, Movement, ServiceVan, PartRequest } from "../models.js";
+import { Product, Movement, ServiceVan, PartRequest, MovementTicket } from "../models.js";
+import { reserveMovementTicket } from "../movement-tickets.js";
 import { manage, admin } from "../auth.js";
 import {
   branchScope,
@@ -9,6 +10,7 @@ import {
   text,
   fail,
   json,
+  inventoryRecordJson,
   checkQuantity,
   transaction,
   recordMovement,
@@ -17,6 +19,13 @@ import {
 } from "../helpers.js";
 
 const router = Router();
+router.post("/movement-tickets", manage, (req, res, next) => {
+  const movementType = text(req.body.movementType, "Movement type");
+  if (!["STOCK_IN", "STOCK_OUT"].includes(movementType)) fail("Invalid movement type.");
+  reserveMovementTicket(movementType, String(req.user._id))
+    .then((ticket) => res.status(201).json({ referenceId: ticket._id, movementType: ticket.movementType }))
+    .catch(next);
+});
 router.get("/products", (req, res, next) => {
   branchScope(req, req.query.branchId)
     .then((branchId) =>
@@ -160,10 +169,23 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
     "Receipt, return, or adjustment explanation",
   );
   const movementType = delta > 0 ? "STOCK_IN" : "STOCK_OUT";
-  const referenceId = generateTicket(delta > 0 ? "STI" : "STO");
+  if (req.body.referenceId !== undefined &&
+      (typeof req.body.referenceId !== "string" || !/^(STI|STO)\d{4,}$/.test(req.body.referenceId)))
+    fail("Invalid movement ticket.");
   branchScope(req, req.body.branchId)
-    .then((branchId) =>
-      transaction((session) => {
+    .then(async (branchId) => {
+      const ticket = req.body.referenceId === undefined
+        ? await reserveMovementTicket(movementType, String(req.user._id))
+        : await MovementTicket.findById(req.body.referenceId);
+      if (!ticket || ticket.movementType !== movementType) fail("Movement ticket does not match this operation.");
+      if (ticket.requestedBy !== String(req.user._id)) fail("This movement ticket belongs to another account.", 403);
+      return transaction(async (session) => {
+        const reserved = await MovementTicket.findOneAndUpdate(
+          { _id: ticket._id, usedAt: { $exists: false } },
+          { $set: { usedAt: new Date() } },
+          { new: true, session },
+        );
+        if (!reserved) fail("This movement ticket has already been posted.", 409);
         return changeStock(
           req.params.id,
           branchId,
@@ -172,13 +194,13 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
             movementType,
             reason: `${reason}: ${notes}`,
             workOrderId: workOrderId || "",
-            referenceId,
+            referenceId: ticket._id,
           },
           req.user,
           session,
         ).then(json);
-      }),
-    )
+      });
+    })
     .then((item) => res.json(item))
     .catch(next);
 });
@@ -441,22 +463,27 @@ router.get("/movements", (req, res, next) => {
         filter.$or = [
           "sku",
           "itemName",
+          "brand",
+          "itemType",
+          "category",
           "reason",
           "workOrderId",
           "performedByName",
           "referenceId",
+          "requestNumber",
         ].map((field) => ({ [field]: { $regex: search, $options: "i" } }));
       }
       return Promise.all([
         Movement.find(filter)
           .sort(sort)
           .skip((page - 1) * pageSize)
-          .limit(pageSize),
+          .limit(pageSize)
+          .populate("productId", "brand itemType category"),
         Movement.countDocuments(filter),
       ]);
     })
     .then(([items, total]) =>
-      res.json({ items: items.map(json), total, page, pageSize }),
+      res.json({ items: items.map(inventoryRecordJson), total, page, pageSize }),
     )
     .catch(next);
 });
