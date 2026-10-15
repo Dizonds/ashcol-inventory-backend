@@ -16,6 +16,7 @@ import {
   ServiceVan,
   PartRequest,
   Session,
+  JobOrder,
 } from "../src/models.js";
 
 let database;
@@ -71,6 +72,21 @@ function movement(item, delta, overrides = {}) {
     workOrderId: "AC-001",
     ...overrides,
   });
+}
+
+async function createJob(overrides = {}, token = managerToken, makeCurrent = true) {
+  const technician = await User.findOne({ email: "employee@example.test" });
+  const response = await call("post", "/job-orders", {
+    title: "Air conditioner installation", customerName: "Test customer", location: "Taguig",
+    vanId: serviceVanId, assignedTechnicianId: String(technician._id), ...overrides,
+  }, token);
+  assert.equal(response.status, 201, JSON.stringify(response.body));
+  if (makeCurrent) {
+    const assigned = await call("patch", `/job-orders/${response.body.id}/assignment`, {}, token);
+    assert.equal(assigned.status, 200, JSON.stringify(assigned.body));
+    return assigned.body;
+  }
+  return response.body;
 }
 
 before(async () => {
@@ -147,7 +163,7 @@ test("technicians only see their own requests, including completed and deleted h
   assert.ok(listed.body.every(entry => entry.requestedBy === employee.id));
   assert.ok(listed.body.some(entry => entry.id === own.body.id && entry.status === "FULFILLED"));
   assert.ok(!listed.body.some(entry => entry.id === other.body.id));
-  assert.equal(await Movement.countDocuments({ requestNumber: own.body.requestNumber }), 1);
+  assert.equal(await Movement.countDocuments({ requestNumber: own.body.requestNumber }), 2);
   for (const token of [adminToken, managerToken]) {
     const entries = (await call("get", "/requests", { branchId }, token)).body;
     assert.ok(entries.some(entry => entry.id === own.body.id));
@@ -214,7 +230,7 @@ test("managers can delete completed requests without changing stock, ledger or r
   assert.equal(deleted.body.history.at(-1).status, "DELETED");
   assert.equal(deleted.body.deletedByName, "Test Manager");
   assert.equal((await Product.findById(item.id)).quantity, 3);
-  assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), 1);
+  assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), 2);
   assert.ok(!(await call("get", "/requests", { branchId })).body.some(entry => entry.id === created.body.id));
   const historical = (await call("get", "/requests", { branchId, includeDeleted: "true" })).body.find(entry => entry.id === created.body.id);
   assert.equal(historical.status, "FULFILLED");
@@ -246,7 +262,8 @@ test("request deletion racing fulfillment cannot cause partial stock changes", a
   assert.equal(deleted.status, 200);
   assert.ok([200, 404].includes(fulfilled.status));
   assert.equal((await Product.findById(item.id)).quantity, fulfilled.status === 200 ? 3 : 5);
-  assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), fulfilled.status === 200 ? 1 : 0);
+  assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), fulfilled.status === 200 ? 2 : 0);
+  assert.equal((await Product.findOne({ branchId: serviceVanId, sku: item.sku }))?.quantity || 0, fulfilled.status === 200 ? 2 : 0);
   assert.ok((await PartRequest.findById(created.body.id)).deletedAt);
 });
 
@@ -757,6 +774,7 @@ test("request approval does not deduct stock; fulfillment deducts exactly once",
   assert.equal(response.body.brand, item.brand);
   assert.equal(response.body.itemType, item.itemType);
   assert.equal(response.body.category, item.category);
+  assert.equal(response.body.destinationVanId, serviceVanId);
   const path = `/requests/${response.body.id}`;
   assert.equal(
     (await call("patch", path, { branchId, status: "FULFILLED" })).status,
@@ -781,17 +799,74 @@ test("request approval does not deduct stock; fulfillment deducts exactly once",
   assert.equal((await Product.findById(item.id)).quantity, 3);
   assert.equal(
     await Movement.countDocuments({ referenceId: response.body.id }),
-    1,
+    2,
   );
+  const received = await Product.findOne({ branchId: serviceVanId, sku: item.sku });
+  assert.equal(received.quantity, 2);
+  assert.equal(received.brand, item.brand);
+  const vanLedger = await call("get", "/movements", { branchId: serviceVanId, search: reference.body.requestNumber }, employeeToken);
+  assert.equal(vanLedger.body.total, 1);
+  assert.equal(vanLedger.body.items[0].quantityDelta, 2);
   const list = await call("get", "/requests", { branchId }, employeeToken);
   const saved = list.body.find((entry) => entry.id === response.body.id);
   assert.equal(saved.requestNumber, reference.body.requestNumber);
   assert.deepEqual(saved.history.map((event) => event.status), ["PENDING", "APPROVED", "FULFILLED"]);
   assert.deepEqual(saved.history.map((event) => event.performedByName), ["Test Employee", "Test Manager", "Test Admin"]);
   const ledger = await call("get", "/movements", { branchId, search: reference.body.requestNumber });
-  assert.equal(ledger.body.total, 1);
+  assert.equal(ledger.body.total, 2);
   assert.equal(ledger.body.items[0].referenceId, response.body.id);
   assert.equal(ledger.body.items[0].requestNumber, reference.body.requestNumber);
+});
+
+test("technicians need an assigned vehicle for request references and submissions", async () => {
+  const tech = await removalAccount("request-no-vehicle");
+  const login = await call("post", "/auth/login", { email: tech.email, password: "Removal-test-2026" });
+  const item = await create();
+  const before = await PartRequest.countDocuments();
+  assert.equal((await call("get", "/requests/reference", {}, login.body.token)).status, 409);
+  const submitted = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1, destinationVanId: serviceVanId }, login.body.token);
+  assert.equal(submitted.status, 409);
+  assert.equal(await PartRequest.countDocuments(), before);
+  assert.equal((await Product.findById(item.id)).quantity, item.quantity);
+});
+
+test("fulfillment adds to existing van stock and rolls back catalog mismatches", async () => {
+  const item = await create({ quantity: 5 });
+  const target = await create({ branchId: serviceVanId, sku: item.sku, quantity: 3 });
+  const first = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 2 }, employeeToken);
+  await call("patch", `/requests/${first.body.id}`, { branchId, status: "APPROVED" });
+  assert.equal((await call("patch", `/requests/${first.body.id}`, { branchId, status: "FULFILLED" })).status, 200);
+  assert.equal((await Product.findById(target.id)).quantity, 5);
+  const second = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, employeeToken);
+  await call("patch", `/requests/${second.body.id}`, { branchId, status: "APPROVED" });
+  await Product.updateOne({ _id: target.id }, { $set: { archived: true } });
+  assert.equal((await call("patch", `/requests/${second.body.id}`, { branchId, status: "FULFILLED" })).status, 409);
+  assert.equal((await Product.findById(item.id)).quantity, 3);
+  assert.equal((await Product.findById(target.id)).quantity, 5);
+  assert.equal((await PartRequest.findById(second.body.id)).status, "APPROVED");
+  assert.equal(await Movement.countDocuments({ referenceId: second.body.id }), 0);
+});
+
+test("fulfillment rejects changed vehicle assignments and supports pending legacy requests", async () => {
+  const item = await create();
+  const created = await call("post", "/requests", { branchId, productId: item.id, quantityNeeded: 1 }, employeeToken);
+  await call("patch", `/requests/${created.body.id}`, { branchId, status: "APPROVED" });
+  const van = await ServiceVan.findById(serviceVanId);
+  await ServiceVan.updateOne({ _id: serviceVanId }, { $set: { driverId: "", driverName: "" } });
+  try {
+    assert.equal((await call("patch", `/requests/${created.body.id}`, { branchId, status: "FULFILLED" })).status, 409);
+    assert.equal((await PartRequest.findById(created.body.id)).status, "APPROVED");
+    assert.equal((await Product.findById(item.id)).quantity, item.quantity);
+    assert.equal(await Movement.countDocuments({ referenceId: created.body.id }), 0);
+    assert.equal((await call("delete", `/service-vans/${serviceVanId}`)).status, 409);
+  } finally {
+    await ServiceVan.updateOne({ _id: serviceVanId }, { $set: { driverId: van.driverId, driverName: van.driverName } });
+  }
+  await PartRequest.updateOne({ _id: created.body.id }, { $unset: { destinationVanId: "", destinationVanName: "" } });
+  const fulfilled = await call("patch", `/requests/${created.body.id}`, { branchId, status: "FULFILLED" });
+  assert.equal(fulfilled.status, 200, JSON.stringify(fulfilled.body));
+  assert.equal(fulfilled.body.destinationVanId, serviceVanId);
+  assert.equal((await Product.findOne({ branchId: serviceVanId, sku: item.sku })).quantity, 1);
 });
 
 test("request IDs are unique and reject malformed or reused IDs", async () => {
@@ -936,13 +1011,17 @@ test("a destination mismatch rolls back both sides of a transfer", async () => {
 
 test("assigned employees can record material used from their service van", async () => {
   const item = await create({ branchId: serviceVanId, quantity: 5 });
+  const job = await createJob();
+  const ticket = await call("post", `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+  assert.equal(ticket.status, 201);
+  assert.match(ticket.body.usageId, /^USE\d{4,}$/);
   const response = await call(
     "post",
     `/service-vans/${serviceVanId}/consume`,
     {
       productId: item.id,
       quantity: 2,
-      workOrderId: "JOB-2026-001",
+      usageId: ticket.body.usageId, jobOrderId: job.id,
       notes: "Installed during client site repair",
     },
     employeeToken,
@@ -953,16 +1032,67 @@ test("assigned employees can record material used from their service van", async
     productId: item.id,
     movementType: "JOB_CONSUMPTION",
   });
-  assert.equal(movement.workOrderId, "JOB-2026-001");
+  assert.equal(movement.workOrderId, job.jobNumber);
+  assert.equal(String(movement.jobOrderId), job.id);
+  assert.equal(movement.referenceId, ticket.body.usageId);
   assert.equal(movement.quantityDelta, -2);
   const ledger = await call(
     "get",
     "/movements",
-    { branchId, search: "JOB-2026-001" },
+    { branchId, search: ticket.body.usageId },
     employeeToken,
   );
   assert.equal(ledger.status, 200);
   assert.equal(ledger.body.total, 1);
+  const duplicate = await call("post", `/service-vans/${serviceVanId}/consume`, {
+    productId: item.id, quantity: 1, usageId: ticket.body.usageId, jobOrderId: job.id, notes: "Duplicate attempt",
+  }, employeeToken);
+  assert.equal(duplicate.status, 409);
+  assert.equal((await Product.findById(item.id)).quantity, 3);
+});
+
+test("generated usage IDs respect ownership and survive failed stock deductions", async () => {
+  const item = await create({ branchId: serviceVanId, quantity: 2 });
+  const job = await createJob();
+  const reserved = await Promise.all(Array.from({ length: 5 }, () =>
+    call("post", `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken)));
+  assert.ok(reserved.every((response) => response.status === 201));
+  assert.equal(new Set(reserved.map((response) => response.body.usageId)).size, 5);
+  const payload = { productId: item.id, quantity: 3, usageId: reserved[0].body.usageId, jobOrderId: job.id, notes: "Site repair" };
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, payload, adminToken)).status, 403);
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, payload, employeeToken)).status, 409);
+  const retry = await call("post", `/service-vans/${serviceVanId}/consume`, { ...payload, quantity: 1 }, employeeToken);
+  assert.equal(retry.status, 200, JSON.stringify(retry.body));
+  const invalid = await call("post", `/service-vans/${serviceVanId}/consume`, {
+    ...payload, usageId: "JOB-2026-001", quantity: 1,
+  }, employeeToken);
+  assert.equal(invalid.status, 400);
+  await ServiceVan.create({ _id: "VAN-JOB-SCOPE", name: "Other vehicle" });
+  assert.equal((await call("post", "/service-vans/VAN-JOB-SCOPE/usage-ticket", {}, employeeToken)).status, 403);
+  const foreign = await call("post", "/service-vans/VAN-JOB-SCOPE/consume", {
+    ...payload, usageId: reserved[1].body.usageId, quantity: 1,
+  }, adminToken);
+  assert.equal(foreign.status, 400);
+});
+
+test("distinct usage IDs link to one assigned job and appear in its materials history", async () => {
+  const vanItem = await create({ branchId: serviceVanId, quantity: 5 });
+  const job = await createJob();
+  for (let index = 0; index < 3; index += 1) {
+    const ticket = await call("post", `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+    const response = await call("post", `/service-vans/${serviceVanId}/consume`, {
+      productId: vanItem.id, quantity: 1, usageId: ticket.body.usageId,
+      jobOrderId: job.id, notes: "Materials used on site",
+    }, employeeToken);
+    assert.equal(response.status, 200, JSON.stringify(response.body));
+  }
+  const linked = await Movement.find({ jobOrderId: job.id });
+  assert.equal(linked.length, 3);
+  assert.equal(new Set(linked.map((entry) => entry.referenceId)).size, 3);
+  assert.ok(linked.every((entry) => entry.workOrderId === job.jobNumber));
+  const details = await call("get", `/job-orders/${job.id}`, {}, employeeToken);
+  assert.equal(details.status, 200);
+  assert.equal(details.body.movements.length, 3);
 });
 
 test("archiving requires zero stock and no open requests; restore preserves identity", async () => {
@@ -1030,6 +1160,160 @@ test("ledger pagination reaches older records and treats search as literal text"
     (await call("get", "/movements", { branchId, search: ".*" })).body.total,
     0,
   );
+});
+
+test("job orders are generated by managers, scoped to technicians, and reject closed or foreign usage", async () => {
+  const own = await createJob();
+  assert.match(own.jobNumber, /^JOB\d{4,}$/);
+  assert.equal((await call('post', '/job-orders', {}, employeeToken)).status, 403);
+  const other = await removalAccount('job-other-tech');
+  await ServiceVan.create({ _id: 'VAN-JOB-OTHER', name: 'Other job van', driverId: other.id, driverName: other.fullName });
+  const foreign = await createJob({ vanId: 'VAN-JOB-OTHER', assignedTechnicianId: other.id });
+  const listed = await call('get', '/job-orders', {}, employeeToken);
+  assert.ok(listed.body.some(job => job.id === own.id));
+  assert.ok(!listed.body.some(job => job.id === foreign.id));
+  assert.equal((await call('get', `/job-orders/${foreign.id}`, {}, employeeToken)).status, 404);
+  assert.equal((await call('patch', `/job-orders/${foreign.id}/status`, { status: 'COMPLETED' }, employeeToken)).status, 409);
+  assert.equal((await call('patch', `/job-orders/${own.id}/status`, { status: 'CANCELLED' }, employeeToken)).status, 403);
+  const item = await create({ branchId: serviceVanId, quantity: 2 });
+  const ticket = await call('post', `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+  const payload = { productId: item.id, quantity: 1, usageId: ticket.body.usageId, notes: 'Site repair' };
+  assert.equal((await call('post', `/service-vans/${serviceVanId}/consume`, payload, employeeToken)).status, 400);
+  assert.equal((await call('post', `/service-vans/${serviceVanId}/consume`, { ...payload, jobOrderId: foreign.id }, employeeToken)).status, 409);
+  assert.equal((await call('patch', `/job-orders/${own.id}/status`, { status: 'COMPLETED' }, employeeToken)).status, 200);
+  assert.equal((await call('post', `/service-vans/${serviceVanId}/consume`, { ...payload, jobOrderId: own.id }, employeeToken)).status, 409);
+  assert.equal((await Product.findById(item.id)).quantity, 2);
+  const cancelled = await createJob();
+  assert.equal((await call('patch', `/job-orders/${cancelled.id}/status`, { status: 'CANCELLED' })).status, 200);
+  assert.equal((await call('post', `/service-vans/${serviceVanId}/consume`, { ...payload, jobOrderId: cancelled.id }, employeeToken)).status, 409);
+});
+
+test("parallel job creation generates unique numbers and enforces the selected vehicle assignment", async () => {
+  const jobs = await Promise.all(Array.from({ length: 4 }, () => createJob({}, managerToken, false)));
+  assert.equal(new Set(jobs.map(job => job.jobNumber)).size, 4);
+  const manager = await User.findOne({ email: 'manager@example.test' });
+  const invalidTechnician = await call('post', '/job-orders', {
+    title: 'Invalid assignment', customerName: 'Customer', location: 'Taguig', vanId: serviceVanId, assignedTechnicianId: String(manager._id),
+  });
+  assert.equal(invalidTechnician.status, 400);
+  const other = await User.findOne({ email: 'job-other-tech@example.test' });
+  const mismatched = await call('post', '/job-orders', {
+    title: 'Invalid vehicle', customerName: 'Customer', location: 'Taguig', vanId: serviceVanId, assignedTechnicianId: String(other._id),
+  });
+  assert.equal(mismatched.status, 409);
+});
+
+test("completion racing usage cannot record materials after a job is closed", async () => {
+  const job = await createJob();
+  const item = await create({ branchId: serviceVanId, quantity: 2 });
+  const ticket = await call('post', `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+  const [usage, completion] = await Promise.all([
+    call('post', `/service-vans/${serviceVanId}/consume`, { productId: item.id, quantity: 1, usageId: ticket.body.usageId, jobOrderId: job.id, notes: 'Final material' }, employeeToken),
+    call('patch', `/job-orders/${job.id}/status`, { status: 'COMPLETED' }, managerToken),
+  ]);
+  assert.equal(completion.status, 200);
+  assert.ok([200, 409].includes(usage.status));
+  const quantity = (await Product.findById(item.id)).quantity;
+  assert.equal(quantity, usage.status === 200 ? 1 : 2);
+  assert.equal(await Movement.countDocuments({ jobOrderId: job.id }), usage.status === 200 ? 1 : 0);
+});
+
+test("open job assignments block deleting accounts and vehicles while closed jobs retain their history", async () => {
+  const tech = await removalAccount('job-delete-tech');
+  tech.fullName = "Job Deletion Technician";
+  await User.updateOne({ _id: tech.id }, { $set: { fullName: tech.fullName } });
+  await ServiceVan.create({ _id: 'VAN-JOB-DELETE', name: 'Job deletion van', driverId: tech.id, driverName: tech.fullName });
+  const job = await createJob({ vanId: 'VAN-JOB-DELETE', assignedTechnicianId: tech.id });
+  await ServiceVan.updateOne({ _id: 'VAN-JOB-DELETE' }, { $set: { driverId: '', driverName: '' } });
+  assert.equal((await call('delete', `/users/${tech.id}`)).status, 409);
+  assert.equal((await call('delete', '/service-vans/VAN-JOB-DELETE')).status, 409);
+  assert.equal((await call('patch', `/job-orders/${job.id}/status`, { status: 'CANCELLED' })).status, 200);
+  assert.equal((await call('delete', `/users/${tech.id}`)).status, 200);
+  assert.equal((await call('delete', '/service-vans/VAN-JOB-DELETE')).status, 200);
+  const history = await call('get', `/job-orders/${job.id}`);
+  assert.equal(history.status, 200);
+  assert.equal(history.body.technicianName, tech.fullName);
+});
+
+test("managers control the current job and technicians cannot record against queued work", async () => {
+  const current = await createJob();
+  const queued = await createJob({}, managerToken, false);
+  assert.equal(queued.isCurrent, false);
+  assert.equal((await call("patch", `/job-orders/${queued.id}/assignment`, {}, employeeToken)).status, 403);
+  const assigned = await call("get", "/job-orders", { vanId: serviceVanId, status: "OPEN", current: "true" }, employeeToken);
+  assert.deepEqual(assigned.body.map((job) => job.id), [current.id]);
+  const item = await create({ branchId: serviceVanId, quantity: 3 });
+  const ticket = await call("post", `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+  const payload = { productId: item.id, quantity: 1, usageId: ticket.body.usageId, notes: "Current service work" };
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, { ...payload, jobOrderId: queued.id }, employeeToken)).status, 409);
+  assert.equal((await call("patch", `/job-orders/${queued.id}/assignment`, {}, managerToken)).status, 200);
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, { ...payload, jobOrderId: current.id }, employeeToken)).status, 409);
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, { ...payload, jobOrderId: queued.id }, employeeToken)).status, 200);
+  assert.equal((await JobOrder.findById(current.id)).isCurrent, false);
+  assert.equal((await JobOrder.findById(current.id)).status, "OPEN");
+  assert.equal((await call("patch", `/job-orders/${queued.id}/status`, { status: "COMPLETED" }, employeeToken)).status, 200);
+  const remaining = await call("get", "/job-orders", { current: "true" }, employeeToken);
+  assert.equal(remaining.body.length, 0);
+  assert.equal((await Product.findById(item.id)).quantity, 2);
+});
+
+test("simultaneous manager assignments leave exactly one current job", async () => {
+  const jobs = await Promise.all([createJob({}, managerToken, false), createJob({}, managerToken, false)]);
+  const results = await Promise.all(jobs.map((job) => call("patch", `/job-orders/${job.id}/assignment`, {}, managerToken)));
+  assert.ok(results.every((result) => result.status === 200), JSON.stringify(results.map((result) => result.body)));
+  const current = await JobOrder.find({ isCurrent: true, vanId: serviceVanId });
+  assert.equal(current.length, 1);
+  assert.ok(jobs.some((job) => job.id === String(current[0]._id)));
+});
+
+test("switching the current job during usage preserves stock and job linkage", async () => {
+  const original = await createJob();
+  const next = await createJob({}, managerToken, false);
+  const item = await create({ branchId: serviceVanId, quantity: 2 });
+  const ticket = await call("post", `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+  const [usage, assignment] = await Promise.all([
+    call("post", `/service-vans/${serviceVanId}/consume`, { productId: item.id, quantity: 1, usageId: ticket.body.usageId, jobOrderId: original.id, notes: "Work in progress" }, employeeToken),
+    call("patch", `/job-orders/${next.id}/assignment`, {}, managerToken),
+  ]);
+  assert.equal(assignment.status, 200);
+  assert.ok([200, 409].includes(usage.status));
+  assert.equal((await Product.findById(item.id)).quantity, usage.status === 200 ? 1 : 2);
+  assert.equal(await Movement.countDocuments({ jobOrderId: original.id }), usage.status === 200 ? 1 : 0);
+  assert.equal((await JobOrder.findById(next.id)).isCurrent, true);
+});
+
+test("managers and admins can edit and reassign open jobs while preserving material history", async () => {
+  const other = await User.findOne({ email: "job-other-tech@example.test" });
+  const target = { assignedTechnicianId: String(other._id), vanId: "VAN-JOB-OTHER" };
+  const recipientCurrent = await createJob(target);
+  const original = await createJob();
+  const item = await create({ branchId: serviceVanId, quantity: 3 });
+  const ticket = await call("post", `/service-vans/${serviceVanId}/usage-ticket`, {}, employeeToken);
+  const usage = { productId: item.id, quantity: 1, usageId: ticket.body.usageId, jobOrderId: original.id, notes: "Before reassignment" };
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, usage, employeeToken)).status, 200);
+  const before = (await Movement.findOne({ jobOrderId: original.id })).toObject();
+  const payload = { ...original, ...target, title: "Updated service job" };
+  assert.equal((await call("patch", `/job-orders/${original.id}`, payload, employeeToken)).status, 403);
+  assert.equal((await call("patch", `/job-orders/${original.id}`, { ...payload, vanId: serviceVanId }, managerToken)).status, 409);
+  const edited = await call("patch", `/job-orders/${original.id}`, payload, managerToken);
+  assert.equal(edited.status, 200, JSON.stringify(edited.body));
+  assert.equal(edited.body.jobNumber, original.jobNumber);
+  assert.equal(edited.body.title, payload.title);
+  assert.equal(edited.body.assignedTechnicianId, target.assignedTechnicianId);
+  assert.equal(edited.body.isCurrent, true);
+  assert.equal((await JobOrder.findById(recipientCurrent.id)).isCurrent, false);
+  assert.equal((await call("get", `/job-orders/${original.id}`, {}, employeeToken)).status, 404);
+  assert.equal((await call("post", `/service-vans/${serviceVanId}/consume`, { ...usage, usageId: undefined }, employeeToken)).status, 409);
+  assert.deepEqual((await Movement.findOne({ jobOrderId: original.id })).toObject(), before);
+  assert.equal((await Product.findById(item.id)).quantity, 2);
+
+  const queued = await createJob({}, managerToken, false);
+  const queuedEdit = await call("patch", `/job-orders/${queued.id}`, { ...queued, ...target }, adminToken);
+  assert.equal(queuedEdit.status, 200, JSON.stringify(queuedEdit.body));
+  assert.equal(queuedEdit.body.isCurrent, false);
+  assert.equal((await JobOrder.findById(original.id)).isCurrent, true);
+  assert.equal((await call("patch", `/job-orders/${queued.id}/status`, { status: "CANCELLED" })).status, 200);
+  assert.equal((await call("patch", `/job-orders/${queued.id}`, { ...queued, ...target })).status, 409);
 });
 
 test("logout and expired sessions are rejected by the server", async () => {

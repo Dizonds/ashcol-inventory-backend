@@ -20,6 +20,7 @@ import {
   RequestReference,
   Counter,
   MovementTicket,
+  JobOrder,
 } from "../src/models.js";
 
 async function resetAndSeed() {
@@ -27,7 +28,7 @@ async function resetAndSeed() {
     process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory",
   );
   console.log(`Connected to ${mongoose.connection.host}:${mongoose.connection.port}/${mongoose.connection.name}.`);
-  const models = [Product, Movement, ServiceVan, Brand, Supplier, User, Session, PartRequest, RequestReference, Counter, MovementTicket];
+  const models = [Product, Movement, ServiceVan, Brand, Supplier, User, Session, PartRequest, RequestReference, Counter, MovementTicket, JobOrder];
   const backup = {};
   for (const model of models) backup[model.collection.name] = await model.collection.find({}).toArray();
   if (Object.values(backup).some((documents) => documents.length)) {
@@ -153,18 +154,30 @@ async function resetAndSeed() {
     },
     {
       email: "manager@ashcol.com",
-      fullName: "Warehouse Manager",
+      firstName: "Miguel",
+      lastName: "Reyes",
+      fullName: "Miguel Reyes",
       role: "MANAGER",
       branchId: "LOCAL-WAREHOUSE",
       passwordHash,
     },
     {
       email: "technician@ashcol.com",
-      fullName: "Field Technician Lead",
+      firstName: "Adrian",
+      lastName: "Santos",
+      fullName: "Adrian Santos",
       role: "EMPLOYEE",
       branchId: "LOCAL-WAREHOUSE",
       passwordHash,
     },
+    ...[
+      ["technician2@ashcol.com", "Carlo", "Navarro"],
+      ["technician3@ashcol.com", "Joshua", "Cruz"],
+      ["technician4@ashcol.com", "Rafael", "Garcia"],
+    ].map(([email, firstName, lastName]) => ({
+      email, firstName, lastName, fullName: `${firstName} ${lastName}`,
+      role: "EMPLOYEE", branchId: "LOCAL-WAREHOUSE", passwordHash,
+    })),
   ];
   const createdUsers = await User.insertMany(users);
   console.log(`Seeded ${users.length} user accounts.`);
@@ -594,6 +607,7 @@ async function resetAndSeed() {
     await PartRequest.create({
       _id: reference._id, requestNumber: reference.requestNumber, workOrderId: reference.requestNumber,
       branchId: requestItem.branchId, productId: requestItem._id, sku: requestItem.sku,
+      destinationVanId: "VAN-01", destinationVanName: serviceVans[0].name,
       itemName: requestItem.name, itemType: requestItem.itemType, category: requestItem.category,
       brand: requestItem.brand, unitOfMeasure: requestItem.unitOfMeasure,
       quantityNeeded: 2, notes: `Sample ${status.toLowerCase()} service materials request`, status,
@@ -601,14 +615,27 @@ async function resetAndSeed() {
       createdAt: requestedAt, history, ...review,
       ...(status === "FULFILLED" ? { fulfilledByName: adminUser.fullName, fulfilledAt: dayAt(1, 10) } : {}),
     });
-    if (status === "FULFILLED") await recordMovement(requestItem, -2, "REQUEST_ISSUE", 1,
-      "Materials released for approved service request", {
-        referenceId: String(reference._id), requestNumber: reference.requestNumber,
-        workOrderId: reference.requestNumber,
-      });
+    if (status === "FULFILLED") {
+      const receipt = { referenceId: String(reference._id), requestNumber: reference.requestNumber, workOrderId: reference.requestNumber };
+      await recordMovement(requestItem, -2, "REQUEST_ISSUE", 1, "Materials released for approved service request", receipt);
+      let target = createdProducts.find((item) => item.branchId === "VAN-01" && item.sku === requestItem.sku);
+      if (!target) {
+        target = await Product.create({ ...requestItem.toObject(), _id: new mongoose.Types.ObjectId(), branchId: "VAN-01", quantity: 0 });
+        createdProducts.push(target);
+      }
+      await recordMovement(target, 2, "TRANSFER_IN", 1, "Approved material request received in assigned vehicle", receipt);
+    }
   }
   for (const item of createdProducts) await item.save();
   await Movement.insertMany(movements);
+  await Counter.updateOne({ _id: "JOB" }, { $set: { value: 1 } }, { upsert: true });
+  await JobOrder.create({
+    jobNumber: "JOB0001", title: "Office AC installation", customerName: "Demo customer",
+    location: "Taguig City", description: "Install and test the office air conditioner.",
+    assignedTechnicianId: technician._id, technicianName: technician.fullName,
+    vanId: "VAN-01", vanName: serviceVans[0].name, createdByName: managerUser.fullName,
+    isCurrent: true, assignedAt: new Date(), assignedByName: managerUser.fullName,
+  });
   console.log(`Seeded ${movements.length} balanced ledger records and four numbered material requests.`);
 
   console.log("Database reset and new demo data seeding completed successfully!");

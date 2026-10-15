@@ -75,6 +75,7 @@ const movementSchema = new mongoose.Schema(
     afterQuantity: Number,
     reason: String,
     workOrderId: String,
+    jobOrderId: { type: mongoose.Schema.Types.ObjectId, ref: "JobOrder" },
     referenceId: String,
     requestNumber: String,
     performedBy: String,
@@ -84,6 +85,7 @@ const movementSchema = new mongoose.Schema(
   options,
 );
 movementSchema.index({ branchId: 1, createdAt: -1 });
+movementSchema.index({ jobOrderId: 1, createdAt: -1 });
 
 const userSchema = new mongoose.Schema(
   {
@@ -117,6 +119,8 @@ const requestSchema = new mongoose.Schema(
   {
     requestNumber: { type: String, unique: true, sparse: true },
     branchId: { type: String, required: true },
+    destinationVanId: String,
+    destinationVanName: String,
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
@@ -173,10 +177,32 @@ export const Counter = mongoose.model("Counter", new mongoose.Schema({
   _id: String,
   value: { type: Number, required: true },
 }));
+export const JobOrder = mongoose.model("JobOrder", new mongoose.Schema({
+  jobNumber: { type: String, required: true, unique: true },
+  title: { type: String, required: true },
+  customerName: { type: String, required: true },
+  location: { type: String, required: true },
+  description: { type: String, default: "" },
+  assignedTechnicianId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  technicianName: { type: String, required: true },
+  vanId: { type: String, required: true },
+  vanName: { type: String, required: true },
+  status: { type: String, enum: ["OPEN", "COMPLETED", "CANCELLED"], default: "OPEN" },
+  isCurrent: { type: Boolean, default: false },
+  assignedAt: Date,
+  assignedByName: String,
+  createdByName: String,
+  closedAt: Date,
+  closedByName: String,
+}, options)
+  .index({ assignedTechnicianId: 1, status: 1, vanId: 1 })
+  .index({ assignedTechnicianId: 1 }, { unique: true, partialFilterExpression: { isCurrent: true } })
+  .index({ vanId: 1 }, { unique: true, partialFilterExpression: { isCurrent: true } }));
 export const MovementTicket = mongoose.model("MovementTicket", new mongoose.Schema({
   _id: String,
-  movementType: { type: String, enum: ["STOCK_IN", "STOCK_OUT"], required: true },
+  movementType: { type: String, enum: ["STOCK_IN", "STOCK_OUT", "JOB_CONSUMPTION"], required: true },
   requestedBy: { type: String, required: true },
+  branchId: String,
   usedAt: Date,
 }));
 // Mobile fleet records live separately from the fixed Taguig warehouse.

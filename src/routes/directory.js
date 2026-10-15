@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter, VEHICLE_TYPES } from "../models.js";
+import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter, JobOrder, VEHICLE_TYPES } from "../models.js";
 import { admin, manage, hashPassword } from "../auth.js";
 import { text, fail, json, transaction, lockServiceVan } from "../helpers.js";
 import { updateAccount } from "../accounts.js";
@@ -102,8 +102,10 @@ router.delete("/service-vans/:id", admin, (req, res, next) => {
       fail("Vehicle is busy. Unassign its driver and set it to Available before deleting it.", 409);
     if (await Product.exists({ branchId: van._id, quantity: { $gt: 0 } }).session(session))
       fail("Vehicle is busy. Return all stock to the warehouse before deleting it.", 409);
-    if (await PartRequest.exists({ branchId: van._id, status: { $in: ["PENDING", "APPROVED"] }, deletedAt: { $exists: false } }).session(session))
+    if (await PartRequest.exists({ $or: [{ branchId: van._id }, { destinationVanId: van._id }], status: { $in: ["PENDING", "APPROVED"] }, deletedAt: { $exists: false } }).session(session))
       fail("Vehicle is busy. Resolve its open material requests before deleting it.", 409);
+    if (await JobOrder.exists({ vanId: van._id, status: "OPEN" }).session(session))
+      fail("Complete or cancel this vehicle's open job orders before deleting it.", 409);
     await ServiceVan.deleteOne({ _id: van._id }, { session });
   })
     .then(() => res.json({ success: true, message: "Service vehicle deleted." }))
@@ -245,6 +247,8 @@ router.delete("/users/:id", admin, (req, res, next) => {
       { driverName: `${user.fullName} (${user.role})` },
     ] }).session(session);
     if (assignedVehicle) fail(`This user is assigned to ${assignedVehicle.name}. Select No Driver on that vehicle before removing the account.`, 409);
+    if (await JobOrder.exists({ assignedTechnicianId: user._id, status: "OPEN" }).session(session))
+      fail("Complete or cancel this technician's open job orders before removing the account.", 409);
     await Session.deleteMany({ userId: user._id }, { session });
     await User.deleteOne({ _id: user._id }, { session });
   })

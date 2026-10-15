@@ -5,6 +5,7 @@ import { authRouter, authenticate } from "./auth.js";
 import directory from "./routes/directory.js";
 import inventory from "./routes/inventory.js";
 import requests from "./routes/requests.js";
+import jobOrders from "./routes/job-orders.js";
 import { updateAccount } from "./accounts.js";
 
 const app = express();
@@ -25,7 +26,7 @@ app.use("/api/auth", authRouter);
 app.patch("/api/auth/me", authenticate, (req, res, next) => {
   updateAccount(req, req.user._id).then((user) => res.json(user)).catch(next);
 });
-app.use("/api", authenticate, directory, inventory, requests);
+app.use("/api", authenticate, directory, inventory, requests, jobOrders);
 app.use((req, res) => res.status(404).json({ error: "Endpoint not found." }));
 app.use((error, req, res, next) => {
   if (error.code === 11000)

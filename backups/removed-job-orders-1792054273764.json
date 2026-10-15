@@ -1,0 +1,39 @@
+[
+  {
+    "_id": "6ad083f8732bb157a284f6aa",
+    "jobNumber": "JOB0011",
+    "title": "Sira aircon",
+    "customerName": "mss ruht",
+    "location": "caanda",
+    "description": "ggggg",
+    "assignedTechnicianId": "6ad069ae3796fe6aec2f6bc0",
+    "technicianName": "Field Technician Lead",
+    "vanId": "VAN-01",
+    "vanName": "Field Service Van Alpha",
+    "status": "COMPLETED",
+    "createdByName": "Warehouse Manager",
+    "createdAt": "2026-10-15T07:42:48.933Z",
+    "updatedAt": "2026-10-15T07:44:22.888Z",
+    "__v": 2,
+    "closedAt": "2026-10-15T07:44:22.887Z",
+    "closedByName": "Admin Master (Hatdog)"
+  },
+  {
+    "_id": "6ad08fc2a8a3c3d9d4a49990",
+    "jobNumber": "JOB0012",
+    "title": "pa isntall ako 3 aircon pls",
+    "customerName": "sir trampol",
+    "location": "luzon",
+    "description": "hello",
+    "assignedTechnicianId": "6ad069ae3796fe6aec2f6bc0",
+    "technicianName": "Adrian Santos",
+    "vanId": "VAN-01",
+    "vanName": "Field Service Van Alpha",
+    "status": "OPEN",
+    "isCurrent": false,
+    "createdByName": "Warehouse Manager",
+    "createdAt": "2026-10-15T08:33:06.707Z",
+    "updatedAt": "2026-10-15T08:43:10.885Z",
+    "__v": 1
+  }
+]

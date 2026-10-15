@@ -10,6 +10,7 @@ import {
   RequestReference,
   Counter,
   MovementTicket,
+  JobOrder,
 } from "./models.js";
 import { assignExistingRequestNumbers } from "./request-numbers.js";
 
@@ -33,7 +34,7 @@ export function initializeDatabase() {
           "Legacy inventory needs a branch assignment. Back up the database and run npm run migrate -- BRANCH_ID. See SETUP.md.",
         );
       return Promise.all(
-        [Product, Movement, ServiceVan, Brand, User, Session, PartRequest, RequestReference, Counter, MovementTicket].map(
+        [Product, Movement, ServiceVan, Brand, User, Session, PartRequest, RequestReference, Counter, MovementTicket, JobOrder].map(
           (model) => model.createIndexes(),
         ),
       );

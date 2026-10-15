@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
-import { Product, Movement, ServiceVan, PartRequest, MovementTicket } from "../models.js";
+import mongoose from "mongoose";
+import { Product, Movement, ServiceVan, PartRequest, MovementTicket, JobOrder } from "../models.js";
 import { reserveMovementTicket } from "../movement-tickets.js";
 import { manage, admin } from "../auth.js";
 import {
@@ -205,30 +206,55 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
     .catch(next);
 });
 // Employees record materials consumed from their assigned service van.
+router.post("/service-vans/:vanId/usage-ticket", (req, res, next) => {
+  branchScope(req, req.params.vanId)
+    .then((branchId) => reserveMovementTicket("JOB_CONSUMPTION", String(req.user._id), branchId))
+    .then((ticket) => res.status(201).json({ usageId: ticket._id }))
+    .catch(next);
+});
 router.post("/service-vans/:vanId/consume", (req, res, next) => {
   const quantity = number(req.body.quantity, "Quantity used");
   if (!quantity) fail("Quantity used must be positive.");
-  const workOrderId = text(req.body.workOrderId, "Job / work-order number");
+  if (req.body.usageId !== undefined &&
+      (typeof req.body.usageId !== "string" || !/^USE\d{4,}$/.test(req.body.usageId)))
+    fail("Invalid generated usage ID.");
+  if (!mongoose.isValidObjectId(req.body.jobOrderId)) fail("A current job must be assigned by your admin or manager.");
   const notes = text(req.body.notes, "Notes");
 
   branchScope(req, req.params.vanId)
-    .then((branchId) =>
-      transaction((session) =>
-        changeStock(
+    .then(async (branchId) => {
+      const ticket = req.body.usageId === undefined
+        ? await reserveMovementTicket("JOB_CONSUMPTION", String(req.user._id), branchId)
+        : await MovementTicket.findById(req.body.usageId);
+      if (!ticket || ticket.movementType !== "JOB_CONSUMPTION" || ticket.branchId !== branchId)
+        fail("Usage ID does not match this service vehicle.");
+      if (ticket.requestedBy !== String(req.user._id)) fail("This usage ID belongs to another account.", 403);
+      return transaction(async (session) => {
+        const jobFilter = { _id: req.body.jobOrderId, vanId: branchId, status: "OPEN", isCurrent: true };
+        if (req.user.role === "EMPLOYEE") jobFilter.assignedTechnicianId = req.user._id;
+        const job = await JobOrder.findOneAndUpdate(jobFilter, { $inc: { __v: 1 } }, { new: true, session });
+        if (!job) fail("This is no longer your current job. Ask your admin or manager to confirm the assignment.", 409);
+        const reserved = await MovementTicket.findOneAndUpdate(
+          { _id: ticket._id, usedAt: { $exists: false } },
+          { $set: { usedAt: new Date() } }, { new: true, session },
+        );
+        if (!reserved) fail("This usage ID has already been recorded.", 409);
+        return changeStock(
           req.body.productId,
           branchId,
           -quantity,
           {
             movementType: "JOB_CONSUMPTION",
             reason: `Client Installation / Site Project: ${notes}`,
-            workOrderId,
-            referenceId: generateTicket("JOB"),
+            workOrderId: job.jobNumber,
+            jobOrderId: job._id,
+            referenceId: ticket._id,
           },
           req.user,
           session,
-        ).then(json),
-      ),
-    )
+        ).then(json);
+      });
+    })
     .then((item) => res.json(item))
     .catch(next);
 });

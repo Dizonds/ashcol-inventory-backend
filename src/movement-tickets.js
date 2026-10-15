@@ -1,7 +1,8 @@
 import { Counter, Movement, MovementTicket } from "./models.js";
 
-export async function reserveMovementTicket(movementType, requestedBy) {
-  const prefix = movementType === "STOCK_IN" ? "STI" : "STO";
+export async function reserveMovementTicket(movementType, requestedBy, branchId) {
+  const prefix = { STOCK_IN: "STI", STOCK_OUT: "STO", JOB_CONSUMPTION: "USE" }[movementType];
+  if (!prefix) throw new Error("Unsupported movement ticket type.");
   // Continue from existing numbered ledger tickets when creating a counter.
   if (!await Counter.exists({ _id: prefix })) {
     const [existing] = await Movement.aggregate([
@@ -20,5 +21,6 @@ export async function reserveMovementTicket(movementType, requestedBy) {
     _id: `${prefix}${String(counter.value).padStart(4, "0")}`,
     movementType,
     requestedBy,
+    ...(branchId ? { branchId } : {}),
   });
 }
