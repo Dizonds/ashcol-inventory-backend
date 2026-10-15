@@ -197,7 +197,7 @@ try {
   const after = await snapshot();
   assert.deepEqual(after, before, "The chart must restore its pan, scales, preset, and legend after history reloads");
   await page.getByRole("button", { name: "14D", exact: true }).click();
-  await page.getByRole("button", { name: "Bars", exact: true }).click();
+  await page.getByRole("button", { name: "Bar", exact: true }).click();
   await page.waitForTimeout(350);
   const barsBefore = await snapshot();
   await page.getByRole("button", { name: "Stock Ledger", exact: true }).click();

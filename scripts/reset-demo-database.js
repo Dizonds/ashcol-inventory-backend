@@ -1,3 +1,11 @@
+import "dotenv/config";
+import fs from "node:fs/promises";
+import path from "node:path";
+import os from "node:os";
+import { initializeDatabase } from "../src/setup.js";
+import { reserveRequestReference } from "../src/request-numbers.js";
+import { reserveMovementTicket } from "../src/movement-tickets.js";
+import { planDemoActivity } from "./demo-activity.js";
 import mongoose from "mongoose";
 import { hashPassword } from "../src/auth.js";
 import {
@@ -9,25 +17,32 @@ import {
   User,
   Session,
   PartRequest,
+  RequestReference,
+  Counter,
+  MovementTicket,
 } from "../src/models.js";
 
 async function resetAndSeed() {
   await mongoose.connect(
     process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory",
   );
-  console.log("Connected to MongoDB. Resetting inventory collections...");
+  console.log(`Connected to ${mongoose.connection.host}:${mongoose.connection.port}/${mongoose.connection.name}.`);
+  const models = [Product, Movement, ServiceVan, Brand, Supplier, User, Session, PartRequest, RequestReference, Counter, MovementTicket];
+  const backup = {};
+  for (const model of models) backup[model.collection.name] = await model.collection.find({}).toArray();
+  if (Object.values(backup).some((documents) => documents.length)) {
+    const backupDirectory = path.join(process.env.LOCALAPPDATA || os.tmpdir(), "AshcolInventory", "backups");
+    await fs.mkdir(backupDirectory, { recursive: true });
+    const backupFile = path.join(backupDirectory, `${mongoose.connection.name}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`);
+    await fs.writeFile(backupFile, mongoose.mongo.BSON.EJSON.stringify(backup, { relaxed: false }), { flag: "wx" });
+    console.log(`Backup saved: ${backupFile}`);
+  }
 
   // 1. Clear inventory collections
-  await Promise.all([
-    Product.deleteMany({}),
-    Movement.deleteMany({}),
-    ServiceVan.deleteMany({}),
-    Brand.deleteMany({}),
-    Supplier.deleteMany({}),
-    User.deleteMany({}),
-    Session.deleteMany({}),
-    PartRequest.deleteMany({}),
-  ]);
+  await Promise.all(models.map((model) => model.deleteMany({})));
+  await initializeDatabase();
+  // The initializer supplies default brands for an empty database.
+  await Brand.deleteMany({});
   console.log("Cleared existing inventory collections.");
 
   // 2. Seed Brands
@@ -56,6 +71,7 @@ async function resetAndSeed() {
       _id: "VAN-01",
       name: "Field Service Van Alpha",
       plateNumber: "NBD-1234",
+      vehicleType: "Cargo Van",
       driverName: "Alex Rivera (Lead Tech)",
       status: "AVAILABLE",
     },
@@ -63,6 +79,7 @@ async function resetAndSeed() {
       _id: "VAN-02",
       name: "Field Service Van Bravo",
       plateNumber: "ABC-5678",
+      vehicleType: "Pickup",
       driverName: "Danilo Santos (Senior Tech)",
       status: "ON_FIELD",
     },
@@ -149,7 +166,7 @@ async function resetAndSeed() {
       passwordHash,
     },
   ];
-  await User.insertMany(users);
+  const createdUsers = await User.insertMany(users);
   console.log(`Seeded ${users.length} user accounts.`);
 
   // 6. Comprehensive Product Catalog
@@ -514,239 +531,92 @@ async function resetAndSeed() {
   ];
 
   const createdProducts = await Product.insertMany(products);
-  console.log(`Seeded ${createdProducts.length} clean inventory items.`);
+  const [adminUser, managerUser, technician] = createdUsers;
+  await ServiceVan.updateOne({ _id: "VAN-01" }, {
+    $set: { driverId: String(technician._id), driverName: technician.fullName },
+  });
+  console.log(`Seeded ${createdProducts.length} inventory items.`);
 
-  // 7. Seed Movements for Opening Balances & Sample Dispatches
+  // Use past Manila calendar dates; no synthetic activity is placed in the future.
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const dayAt = (daysAgo, hour = 10) => new Date(new Date(`${todayKey}T00:00:00+08:00`).getTime() - daysAgo * 86400000 + hour * 3600000);
   const movements = [];
-  const adminUser = users[0];
-
-  for (let i = 0; i < createdProducts.length; i++) {
-    const item = createdProducts[i];
+  async function recordMovement(item, delta, movementType, daysAgo, reason, extra = {}) {
+    const beforeQuantity = item.quantity;
+    const afterQuantity = beforeQuantity + delta;
+    if (afterQuantity < 0) throw new Error(`Insufficient seed stock for ${item.sku}`);
+    const ticketType = delta >= 0 ? "STOCK_IN" : "STOCK_OUT";
+    const ticket = extra.referenceId ? null : await reserveMovementTicket(ticketType, String(adminUser._id));
+    const createdAt = extra.createdAt || dayAt(daysAgo);
     movements.push({
-      productId: item._id,
-      branchId: item.branchId,
-      sku: item.sku,
-      itemName: item.name,
-      unitOfMeasure: item.unitOfMeasure,
-      movementType: "OPENING",
-      quantityDelta: item.quantity,
-      beforeQuantity: 0,
-      afterQuantity: item.quantity,
-      referenceId: `STI26${String(i + 1).padStart(2, "0")}`,
-      reason: "Initial clean database intake balance",
-      performedBy: String(adminUser._id || "system"),
-      performedByName: adminUser.fullName,
-      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      productId: item._id, branchId: item.branchId, sku: item.sku,
+      itemName: item.name, itemType: item.itemType, category: item.category,
+      brand: item.brand, unitOfMeasure: item.unitOfMeasure,
+      movementType, quantityDelta: delta, beforeQuantity, afterQuantity,
+      referenceId: ticket?._id, reason, performedBy: String(adminUser._id),
+      performedByName: adminUser.fullName, createdAt, ...extra,
     });
+    if (ticket) { ticket.usedAt = createdAt; await ticket.save(); }
+    item.quantity = afterQuantity;
+  }
+  for (const item of createdProducts) {
+    const quantity = item.quantity;
+    item.quantity = 0;
+    await recordMovement(item, quantity, "OPENING", 35, "Opening inventory balance");
+  }
+  const warehouseItems = createdProducts.filter((item) => item.branchId === "LOCAL-WAREHOUSE");
+  for (const entry of planDemoActivity(warehouseItems, dayAt)) {
+    await recordMovement(entry.item, entry.delta, entry.movementType, 1, entry.reason,
+      { createdAt: entry.createdAt });
   }
 
-  // Add realistic dispatch movements in the past 10 days for Fast-Moving analytics
-  const carItem = createdProducts.find(
-    (p) => p.sku === "CAR-1.0HP-CRY" && p.branchId === "LOCAL-WAREHOUSE",
-  );
-  if (carItem) {
-    movements.push({
-      productId: carItem._id,
-      branchId: carItem.branchId,
-      sku: carItem.sku,
-      itemName: carItem.name,
-      unitOfMeasure: carItem.unitOfMeasure,
-      movementType: "STOCK_OUT",
-      quantityDelta: -3,
-      beforeQuantity: 15,
-      afterQuantity: 12,
-      referenceId: "STO2601",
-      reason: "Client Installation / Site Project: Taguig BGC Condo Tower 2",
-      workOrderId: "JOB-2026-101",
-      performedBy: String(adminUser._id || "system"),
-      performedByName: adminUser.fullName,
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-    });
+  const warehouseCopper = warehouseItems.find((item) => item.sku === "CP-PIPE-1/4");
+  const vanCopper = createdProducts.find((item) => item.branchId === "VAN-01" && item.sku === "CP-PIPE-1/4");
+  if (warehouseCopper && vanCopper && warehouseCopper.quantity >= 4) {
+    await recordMovement(warehouseCopper, -4, "TRANSFER_OUT", 1, "Initial Alpha van loadout", { referenceId: "TRA0001" });
+    await recordMovement(vanCopper, 4, "TRANSFER_IN", 1, "Initial Alpha van loadout", { referenceId: "TRA0001" });
   }
 
-  const freonItem = createdProducts.find(
-    (p) => p.sku === "FRN-R410A-11.3" && p.branchId === "LOCAL-WAREHOUSE",
-  );
-  if (freonItem) {
-    movements.push({
-      productId: freonItem._id,
-      branchId: freonItem.branchId,
-      sku: freonItem.sku,
-      itemName: freonItem.name,
-      unitOfMeasure: freonItem.unitOfMeasure,
-      movementType: "STOCK_OUT",
-      quantityDelta: -5,
-      beforeQuantity: 25,
-      afterQuantity: 20,
-      referenceId: "STO2602",
-      reason: "Client Installation / Site Project: Pasay Hotel Maintenance",
-      workOrderId: "JOB-2026-108",
-      performedBy: String(adminUser._id || "system"),
-      performedByName: adminUser.fullName,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    });
-  }
-
-  // Add explicit supplier restock entries so the demo ledger contains both
-  // STOCK_IN and STOCK_OUT activity for the dashboard movement trend.
-  const panasonicItem = createdProducts.find(
-    (p) => p.sku === "PANA-1.5HP-XPU" && p.branchId === "LOCAL-WAREHOUSE",
-  );
-  if (panasonicItem) {
-    movements.push({
-      productId: panasonicItem._id,
-      branchId: panasonicItem.branchId,
-      sku: panasonicItem.sku,
-      itemName: panasonicItem.name,
-      unitOfMeasure: panasonicItem.unitOfMeasure,
-      movementType: "STOCK_IN",
-      quantityDelta: 4,
-      beforeQuantity: 2,
-      afterQuantity: 6,
-      referenceId: "STI2603",
-      reason: "Supplier Delivery / Restock: Panasonic dealer replenishment",
-      performedBy: String(adminUser._id || "system"),
-      performedByName: adminUser.fullName,
-      createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
-    });
-  }
-
-  const r32Item = createdProducts.find(
-    (p) => p.sku === "FRN-R32-9.5KG" && p.branchId === "LOCAL-WAREHOUSE",
-  );
-  if (r32Item) {
-    movements.push({
-      productId: r32Item._id,
-      branchId: r32Item.branchId,
-      sku: r32Item.sku,
-      itemName: r32Item.name,
-      unitOfMeasure: r32Item.unitOfMeasure,
-      movementType: "STOCK_IN",
-      quantityDelta: 5,
-      beforeQuantity: 10,
-      afterQuantity: 15,
-      referenceId: "STI2604",
-      reason: "Supplier Delivery / Restock: Refrigerant replenishment",
-      performedBy: String(adminUser._id || "system"),
-      performedByName: adminUser.fullName,
-      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-    });
-  }
-
-  // Add a believable 30-day rhythm of warehouse activity so dashboard trends
-  // look like an operating inventory system instead of a nearly empty demo.
-  const activitySkus = [
-    "CAR-1.0HP-CRY",
-    "CAR-1.5HP-INV",
-    "DAIK-1.0HP-INV",
-    "PANA-1.5HP-XPU",
-    "FRN-R410A-11.3",
-    "FRN-R32-9.5KG",
-    "MAT-CAP-35-5MFD",
-    "CP-PIPE-1/4",
-  ];
-  let activityTicket = 2605;
-  for (let daysAgo = 1; daysAgo <= 30; daysAgo += 1) {
-    const dayItems = activitySkus
-      .map((sku) => createdProducts.find((p) => p.sku === sku && p.branchId === "LOCAL-WAREHOUSE"))
-      .filter(Boolean);
-    const first = dayItems[(daysAgo * 3) % dayItems.length];
-    const second = dayItems[(daysAgo * 5 + 1) % dayItems.length];
-    const dayDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
-    const addMovement = (item, delta, type, reason, offsetHours) => {
-      if (!item) return;
-      movements.push({
-        productId: item._id,
-        branchId: item.branchId,
-        sku: item.sku,
-        itemName: item.name,
-        unitOfMeasure: item.unitOfMeasure,
-        movementType: type,
-        quantityDelta: delta,
-        beforeQuantity: Math.max(0, item.quantity - delta),
-        afterQuantity: Math.max(0, item.quantity),
-        referenceId: `${type === "STOCK_IN" ? "STI" : "STO"}${activityTicket++}`,
-        reason,
-        performedBy: String(adminUser._id || "system"),
-        performedByName: adminUser.fullName,
-        createdAt: new Date(dayDate.getTime() + offsetHours * 60 * 60 * 1000),
-      });
+  const requestItem = warehouseItems.find((item) => item.sku === "FRN-R410A-11.3");
+  for (const [index, status] of ["PENDING", "APPROVED", "DENIED", "FULFILLED"].entries()) {
+    const reference = await reserveRequestReference(String(technician._id));
+    const requestedAt = dayAt(4 - index, 8);
+    const history = [{ status: "PENDING", performedByName: technician.fullName, at: requestedAt }];
+    const review = status === "PENDING" ? {} : {
+      reviewedByName: managerUser.fullName, reviewedAt: dayAt(4 - index, 9),
+      ...(status === "DENIED" ? { decisionReason: "Duplicate material request" } : {}),
     };
-    addMovement(first, 2 + (daysAgo % 4), "STOCK_IN", "Supplier delivery / scheduled replenishment", 9);
-    if (daysAgo % 2 === 0) {
-      addMovement(second, -(1 + (daysAgo % 3)), "STOCK_OUT", "Client installation / service dispatch", 15);
-    }
-  }
-
-  // Seed sample van transfer
-  const vanItem = createdProducts.find(
-    (p) => p.branchId === "VAN-01" && p.sku === "CP-PIPE-1/4",
-  );
-  if (vanItem) {
-    movements.push(
-      {
-        productId: vanItem._id,
-        branchId: "LOCAL-WAREHOUSE",
-        sku: vanItem.sku,
-        itemName: vanItem.name,
-        unitOfMeasure: vanItem.unitOfMeasure,
-        movementType: "TRANSFER_OUT",
-        quantityDelta: -4,
-        beforeQuantity: 24,
-        afterQuantity: 20,
-        referenceId: "TRA2601",
-        reason: "Van Loadout: Initial alpha van staging",
-        performedBy: String(adminUser._id || "system"),
-        performedByName: adminUser.fullName,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      },
-      {
-        productId: vanItem._id,
-        branchId: "VAN-01",
-        sku: vanItem.sku,
-        itemName: vanItem.name,
-        unitOfMeasure: vanItem.unitOfMeasure,
-        movementType: "TRANSFER_IN",
-        quantityDelta: 4,
-        beforeQuantity: 0,
-        afterQuantity: 4,
-        referenceId: "TRA2601",
-        reason: "Van Loadout: Initial alpha van staging",
-        performedBy: String(adminUser._id || "system"),
-        performedByName: adminUser.fullName,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      },
-    );
-  }
-
-  await Movement.insertMany(movements);
-  console.log(`Seeded ${movements.length} initial ledger movements with STI/STO/TRA tickets.`);
-
-  // 8. Seed sample Material Request demonstrating Reserved Stock
-  if (freonItem) {
-    await PartRequest.create({
-      branchId: "LOCAL-WAREHOUSE",
-      productId: freonItem._id,
-      sku: freonItem.sku,
-      itemName: freonItem.name,
-      unitOfMeasure: freonItem.unitOfMeasure,
-      workOrderId: "AC-SRV-2026-44",
-      quantityNeeded: 2,
-      notes: "Reserved for scheduled Makati Office preventative servicing tomorrow",
-      status: "APPROVED",
-      requestedBy: "technician@ashcol.com",
-      requestedByName: "Field Technician Lead",
-      reviewedByName: "Admin Master (Hatdog)",
-      reviewedAt: new Date(),
+    if (status !== "PENDING") history.push({
+      status: status === "DENIED" ? "DENIED" : "APPROVED", performedByName: managerUser.fullName,
+      at: review.reviewedAt, ...(review.decisionReason ? { reason: review.decisionReason } : {}),
     });
-    console.log("Seeded approved material request (2 Freon tanks reserved).");
+    if (status === "FULFILLED") history.push({ status, performedByName: adminUser.fullName, at: dayAt(1, 10) });
+    await PartRequest.create({
+      _id: reference._id, requestNumber: reference.requestNumber, workOrderId: reference.requestNumber,
+      branchId: requestItem.branchId, productId: requestItem._id, sku: requestItem.sku,
+      itemName: requestItem.name, itemType: requestItem.itemType, category: requestItem.category,
+      brand: requestItem.brand, unitOfMeasure: requestItem.unitOfMeasure,
+      quantityNeeded: 2, notes: `Sample ${status.toLowerCase()} service materials request`, status,
+      requestedBy: String(technician._id), requestedByName: technician.fullName,
+      createdAt: requestedAt, history, ...review,
+      ...(status === "FULFILLED" ? { fulfilledByName: adminUser.fullName, fulfilledAt: dayAt(1, 10) } : {}),
+    });
+    if (status === "FULFILLED") await recordMovement(requestItem, -2, "REQUEST_ISSUE", 1,
+      "Materials released for approved service request", {
+        referenceId: String(reference._id), requestNumber: reference.requestNumber,
+        workOrderId: reference.requestNumber,
+      });
   }
+  for (const item of createdProducts) await item.save();
+  await Movement.insertMany(movements);
+  console.log(`Seeded ${movements.length} balanced ledger records and four numbered material requests.`);
 
   console.log("Database reset and new demo data seeding completed successfully!");
   await mongoose.disconnect();
 }
 
-resetAndSeed().catch((err) => {
+resetAndSeed().catch(async (err) => {
   console.error("Reset failed:", err);
-  process.exit(1);
+  await mongoose.disconnect();
+  process.exitCode = 1;
 });
