@@ -89,20 +89,6 @@ let password;
     })
     .catch(next);
 });
-authRouter.get("/demo-users", (req, res, next) => {
-  User.find()
-    .sort({ createdAt: 1 })
-    .then((users) => {
-      res.json(
-        users.map((u) => ({
-          email: u.email,
-          fullName: u.fullName,
-          role: u.role,
-        })),
-      );
-    })
-    .catch(next);
-});
 authRouter.get("/me", authenticate, (req, res) => res.json(json(req.user)));
 authRouter.post("/logout", authenticate, (req, res, next) => {
   Session.deleteOne({ _id: req.loginSession._id })

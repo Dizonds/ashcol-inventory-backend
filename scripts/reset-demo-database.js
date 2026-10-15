@@ -146,11 +146,13 @@ async function resetAndSeed() {
   const passwordHash = await hashPassword("hatdog@hat.com");
   const users = [
     {
-      email: "hatdog@hat.com",
-      fullName: "Admin Master (Hatdog)",
+      email: "admin@ashcol.com",
+      firstName: "Admin",
+      lastName: "admin",
+      fullName: "Admin admin",
       role: "ADMIN",
       branchId: "LOCAL-WAREHOUSE",
-      passwordHash,
+      passwordHash: await hashPassword("admin@ashcol.com"),
     },
     {
       email: "manager@ashcol.com",
