@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 
 const options = { timestamps: true };
-export const VEHICLE_TYPES = ["Cab Chassis", "Cargo Van", "Pickup", "Hatchback", "Micro SUV"];
+export const VEHICLE_TYPES = ["Cargo Van", "Pickup", "SUV"];
+// Existing fleet records remain editable while registration uses the current types.
+const LEGACY_VEHICLE_TYPES = ["Cab Chassis", "Hatchback", "Micro SUV"];
 const productSchema = new mongoose.Schema(
   {
     branchId: { type: String, required: true },
@@ -214,7 +216,7 @@ export const ServiceVan = mongoose.model(
         _id: String,
         name: { type: String, required: true },
         plateNumber: { type: String, default: "" },
-        vehicleType: { type: String, enum: ["", ...VEHICLE_TYPES], default: "" },
+        vehicleType: { type: String, enum: ["", ...VEHICLE_TYPES, ...LEGACY_VEHICLE_TYPES], default: "" },
         driverId: { type: String, default: "" },
         driverName: { type: String, default: "" },
         status: {

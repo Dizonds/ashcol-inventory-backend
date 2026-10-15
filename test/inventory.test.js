@@ -397,8 +397,8 @@ test("account removal and driver assignment cannot leave a deleted driver on a v
   }
 });
 
-test("vehicle registration saves the five supported types and rejects other classifications", async () => {
-  const types = ["Cab Chassis", "Cargo Van", "Pickup", "Hatchback", "Micro SUV"];
+test("vehicle registration saves photo-supported types and rejects retired classifications", async () => {
+  const types = ["Cargo Van", "Pickup", "SUV"];
   for (const [index, vehicleType] of types.entries()) {
     const result = await call("post", "/service-vans", { id: `VAN-TYPE-${index}`, name: `Type Test ${index}`, vehicleType });
     assert.equal(result.status, 201);
@@ -408,11 +408,17 @@ test("vehicle registration saves the five supported types and rejects other clas
   const invalid = await call("post", "/service-vans", { id: "VAN-TYPE-INVALID", name: "Invalid Type", vehicleType: "Sedan" });
   assert.equal(invalid.status, 400);
   assert.equal(await ServiceVan.exists({ _id: "VAN-TYPE-INVALID" }), null);
+  for (const vehicleType of ["Cab Chassis", "Hatchback", "Micro SUV"]) {
+    const rejected = await call("post", "/service-vans", { id: "VAN-TYPE-RETIRED", name: "Retired type", vehicleType });
+    assert.equal(rejected.status, 400);
+  }
+  await ServiceVan.create({ _id: "VAN-TYPE-EXISTING", name: "Existing SUV", vehicleType: "Micro SUV" });
+  assert.equal((await call("patch", "/service-vans/VAN-TYPE-EXISTING/status", { status: "MAINTENANCE" })).status, 200);
   const legacy = await call("post", "/service-vans", { id: "VAN-TYPE-LEGACY", name: "Legacy Payload" });
   assert.equal(legacy.status, 201);
   assert.equal(legacy.body.vehicleType, "");
   const list = await call("get", "/service-vans");
-  assert.equal(list.body.find((van) => van.id === "VAN-TYPE-2").vehicleType, "Pickup");
+  assert.equal(list.body.find((van) => van.id === "VAN-TYPE-1").vehicleType, "Pickup");
 });
 
 test("only administrators can delete idle, unassigned service vehicles", async () => {

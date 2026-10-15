@@ -161,7 +161,7 @@ async function resetAndSeed() {
       fullName: "Miguel Reyes",
       role: "MANAGER",
       branchId: "LOCAL-WAREHOUSE",
-      passwordHash,
+      passwordHash: await hashPassword("manager@ashcol.com"),
     },
     {
       email: "technician@ashcol.com",
@@ -170,7 +170,7 @@ async function resetAndSeed() {
       fullName: "Adrian Santos",
       role: "EMPLOYEE",
       branchId: "LOCAL-WAREHOUSE",
-      passwordHash,
+      passwordHash: await hashPassword("technician@ashcol.com"),
     },
     ...[
       ["technician2@ashcol.com", "Carlo", "Navarro"],
