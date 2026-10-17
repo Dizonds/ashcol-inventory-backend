@@ -1,4 +1,4 @@
-// Verify chart view restoration against an isolated test database, without .env.
+﻿// Verify chart view restoration against an isolated test database, without .env.
 import assert from "node:assert/strict";
 import path from "node:path";
 import express from "express";
@@ -55,21 +55,30 @@ try {
   assert.equal(await page.getByRole("button", { name: "7D", exact: true }).getAttribute("aria-pressed"), "true", "7D should be the default");
   const dateLabel = yesterday.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
   const inboundPoint = () => page.getByRole("button", { name: `View Stock In details for ${dateLabel}`, exact: true });
-  await inboundPoint().click();
+  assert.equal(await inboundPoint().locator('.stock-dot').evaluate(el => getComputedStyle(el).cursor), 'crosshair', "Line keeps the plus cursor over clickable points");
+  await inboundPoint().focus(); await inboundPoint().press("Enter");
   let dialog = page.getByRole("dialog");
   await dialog.waitFor();
-  assert.equal(await dialog.locator(".ant-table-tbody .ant-table-row").count(), 3, "Both inbound and outbound records should be shown");
+  assert.equal(await dialog.locator(".ant-table-tbody .ant-table-row").count(), 2, "Both inbound and outbound records should be shown");
   assert.equal(await dialog.getByText("CHART-VIEW", { exact: true }).count(), 2);
+  assert.equal(await dialog.getByText("CHART-OTHER", { exact: true }).count(), 0);
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
+  await page.getByLabel("Chart unit of measure").selectOption("CYL");
+  await inboundPoint().focus(); await inboundPoint().press("Enter");
+  dialog = page.getByRole("dialog");
+  await dialog.waitFor();
+  assert.equal(await dialog.locator(".ant-table-tbody .ant-table-row").count(), 1);
   assert.equal(await dialog.getByText("CHART-OTHER", { exact: true }).count(), 1);
-  for (const detail of ["DEMO-RESTOCK", "JOB-DEMO", "Demo Manager", "Supplier restock for testing", "0 → 9", "+9 CYL"]) assert.equal(await dialog.getByText(detail, { exact: true }).count(), 1, detail);
+  for (const detail of ["DEMO-RESTOCK", "JOB-DEMO", "Demo Manager", "Supplier restock for testing", "+9 CYL"]) assert.equal(await dialog.getByText(detail, { exact: true }).count(), 1, detail);
   await page.keyboard.press("Escape");
   await dialog.waitFor({ state: "hidden" });
+  await page.getByLabel("Chart unit of measure").selectOption("UNIT");
   const outboundPoint = page.getByRole("button", { name: `View Stock Out details for ${dateLabel}`, exact: true });
   await outboundPoint.focus();
   await outboundPoint.press("Enter");
   dialog = page.getByRole("dialog");
   await dialog.waitFor();
-  assert.equal(await dialog.locator(".ant-table-tbody .ant-table-row").count(), 3);
+  assert.equal(await dialog.locator(".ant-table-tbody .ant-table-row").count(), 2);
   await dialog.getByRole("button", { name: "Close", exact: true }).click();
   await dialog.waitFor({ state: "hidden" });
   await inboundPoint().scrollIntoViewIfNeeded();
@@ -147,7 +156,7 @@ try {
   }
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.waitForTimeout(200);
-  await inboundPoint().click();
+  await inboundPoint().focus(); await inboundPoint().press("Enter");
   await page.getByRole("dialog").waitFor();
   await page.keyboard.press("Escape");
   await page.getByRole("dialog").waitFor({ state: "hidden" });
@@ -207,11 +216,92 @@ try {
   await waitForHistory();
   await page.waitForTimeout(300);
   assert.deepEqual(await snapshot(), barsBefore, "A later timeframe and Bars selection must also be restored");
+  await page.getByRole("button", { name: "Overall", exact: true }).click();
+  await page.getByLabel("Chart unit of measure").selectOption("OVERALL");
+  await page.getByRole("button", { name: "7D", exact: true }).click();
+  const balancePlot = page.getByRole("region", { name: "Interactive overall stock chart" });
+  const balancePath = () => page.locator('[data-series="stock-balance"]').getAttribute("d");
+  const balanceDot = () => page.getByRole("button", { name: /^3 stock movements:/ });
+  await balancePlot.scrollIntoViewIfNeeded();
+  const hoverBox = await balancePlot.boundingBox();
+  await page.mouse.move(hoverBox.x + hoverBox.width / 2, hoverBox.y + 100);
+  assert.equal(await balancePlot.locator('.stock-balance-hover line').count(), 2, "Overall crosshairs track the pointer between movement points");
+  assert.equal(await balancePlot.locator('.stock-balance-hover circle').count(), 0, "Overall uses crosshairs without a dot following the pointer");
+  assert.equal(await balancePlot.locator('.stock-balance-dot').first().evaluate(el => getComputedStyle(el).opacity), '0', "Permanent dots stay hidden");
+  assert.equal(await balancePlot.locator('.stock-balance-dot').first().evaluate(el => getComputedStyle(el).cursor), 'crosshair', "Overall keeps the plus cursor over clickable points");
+  assert.match(await balancePath(), /^M [\d. -]+ [HL] /, "Overall forms daily peaks and holds balances flat during long gaps");
+  await page.mouse.move(hoverBox.x + 10, hoverBox.y + 10);
+  assert.equal(await balancePlot.locator('.stock-balance-hover').count(), 0, "Overall hides the guide outside the plotting area");
+  await balanceDot().focus(); await balanceDot().press("Enter");
+  dialog = page.getByRole("dialog"); await dialog.waitFor();
+  assert.equal(await dialog.locator(".ant-table-tbody .ant-table-row").count(), 3, "Overall dots open all units' daily movements");
+  assert.equal(await dialog.getByText("CHART-OTHER", { exact: true }).count(), 1);
+  await page.keyboard.press("Escape"); await dialog.waitFor({ state: "hidden" });
+  const balanceBeforeZoom = await balancePath();
+  await page.getByRole("button", { name: "Zoom in", exact: true }).click();
+  assert.notEqual(await balancePath(), balanceBeforeZoom, "Overall horizontal zoom changes the window");
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await balancePlot.scrollIntoViewIfNeeded();
+  let balanceBox = await balancePlot.boundingBox();
+  const pointBoxOverall = await balanceDot().boundingBox();
+  await page.mouse.move(pointBoxOverall.x + pointBoxOverall.width / 2, pointBoxOverall.y + pointBoxOverall.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(pointBoxOverall.x + 110, pointBoxOverall.y + 10, { steps: 8 });
+  await page.mouse.up();
+  assert.equal(await page.getByRole("dialog").count(), 0, "Dragging an Overall dot does not open a popup");
+  assert.notEqual(await balancePath(), balanceBeforeZoom, "Overall dragging pans history");
+  await page.getByRole("button", { name: "Latest", exact: true }).click();
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  balanceBox = await balancePlot.boundingBox();
+  const beforeQuantityStretch = await balancePath();
+  await page.mouse.move(balanceBox.x + 20, balanceBox.y + 170);
+  await page.mouse.down(); await page.mouse.move(balanceBox.x + 20, balanceBox.y + 145, { steps: 5 }); await page.mouse.up();
+  assert.notEqual(await balancePath(), beforeQuantityStretch, "Overall quantity axis stretches");
+  await page.getByRole("button", { name: "Auto scale", exact: true }).click();
+  const beforeDateStretch = await balancePath();
+  await page.mouse.move(balanceBox.x + 400, balanceBox.y + balanceBox.height - 12);
+  await page.mouse.down(); await page.mouse.move(balanceBox.x + 350, balanceBox.y + balanceBox.height - 12, { steps: 5 }); await page.mouse.up();
+  assert.notEqual(await balancePath(), beforeDateStretch, "Overall date axis stretches");
+  const beforeWheel = await balancePath();
+  await page.mouse.move(balanceBox.x + 350, balanceBox.y + 100); await page.mouse.wheel(0, 100); await page.waitForTimeout(100);
+  assert.notEqual(await balancePath(), beforeWheel, "Overall scroll zoom works");
+  await page.getByRole("button", { name: "Expand chart", exact: true }).click();
+  await page.waitForTimeout(300);
+  const expandedOverallBox = await balancePlot.boundingBox();
+  assert.ok(expandedOverallBox.height > balanceBox.height, "Overall grows vertically when expanded");
+  assert.ok(expandedOverallBox.width > balanceBox.width, "Overall grows horizontally when expanded");
+  const svgBox = await balancePlot.locator("svg").boundingBox();
+  assert.ok(Math.abs(svgBox.height - expandedOverallBox.height) < 2, "Expanded Overall fills its viewport");
+  await page.getByRole("button", { name: "Minimize chart", exact: true }).click();
+  await page.waitForTimeout(350);
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await balanceDot().click();
+  await page.getByRole("dialog").waitFor();
+  await page.keyboard.press("Escape"); await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await balancePlot.focus(); await balancePlot.press("ArrowLeft"); await balancePlot.press("+");
+  const normalizedBalancePath = () => balancePlot.evaluate(el => {
+    const width = Number(el.querySelector('svg').getAttribute('viewBox').split(' ')[2]);
+    return el.querySelector('[data-series="stock-balance"]').getAttribute('d').match(/[MHLV][^MHLV]+/g).slice(0, -1).map(segment => {
+      const command = segment[0], values = segment.slice(1).trim().split(/\s+/).map(Number);
+      return [command, ...values.map((value, index) => Number((command === 'V' || ((command === 'M' || command === 'L') && index === 1) ? value : (value - 46) / (width - 74)).toFixed(8)))];
+    });
+  });
+  const overallSavedPath = await normalizedBalancePath();
+  await page.getByRole("button", { name: "Stock Ledger", exact: true }).click();
+  await page.getByRole("heading", { name: "Inventory Transaction History", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Overview", exact: true }).click();
+  await page.getByTestId("stock-balance-current").waitFor(); await page.waitForTimeout(300);
+  assert.equal(await page.getByRole("button", { name: "Overall", exact: true }).getAttribute("aria-pressed"), "true");
+  // Navigation may reopen the sidebar and resize the chart. Compare normalized
+  // dates and balances; exclude the current-time endpoint, which keeps advancing.
+  assert.deepEqual(await normalizedBalancePath(), overallSavedPath, "Overall restores its historical window and scale across responsive widths");
   assert.deepEqual(errors, []);
-  console.log("Chart browser checks passed: dot popup details across multiple SKUs and movement directions, keyboard access, drag without popup, expanded layout and popup closing, 7D default, and chart view restoration.");
+  console.log("Chart browser checks passed for Line, Bar, and Overall: daily details across units, keyboard access, drag without popup, zoom, axis stretching, expanded sizing, and saved views.");
 } finally {
   if (browser) await browser.close();
   if (server) await new Promise(resolve => server.close(resolve));
   await mongoose.disconnect();
   if (database) await database.stop();
 }
+
+

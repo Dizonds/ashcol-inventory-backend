@@ -13,6 +13,7 @@ import {
   JobOrder,
 } from "./models.js";
 import { assignExistingRequestNumbers } from "./request-numbers.js";
+import { assignExistingTransferNumbers } from "./transfer-numbers.js";
 
 export function initializeDatabase() {
   return mongoose.connection.db
@@ -40,22 +41,14 @@ export function initializeDatabase() {
       );
     })
     .then(() => assignExistingRequestNumbers())
+    .then(() => assignExistingTransferNumbers())
     .then(() => Brand.countDocuments())
     .then((count) => {
       if (count === 0)
         return Brand.insertMany(
           [
-            "Carrier",
-            "Daikin",
-            "Panasonic",
-            "LG",
-            "Kolin",
-            "Samsung",
-            "Mitsubishi",
-            "Midea",
-            "Gree",
-            "TCL",
-            "Generic Parts",
+            "Carrier", "Daikin", "Panasonic", "LG", "Kolin", "Samsung",
+            "Mitsubishi", "Midea", "Gree", "TCL", "Generic Parts", "Armacell", "Kembla",
           ].map((name) => ({ name })),
         );
     });

@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 import app from "../src/app.js";
 import { initializeDatabase } from "../src/setup.js";
 import { hashPassword } from "../src/auth.js";
+import { assignExistingTransferNumbers } from "../src/transfer-numbers.js";
 import {
   Product,
   Movement,
@@ -17,6 +18,7 @@ import {
   PartRequest,
   Session,
   JobOrder,
+  Supplier,
 } from "../src/models.js";
 
 let database;
@@ -150,6 +152,162 @@ async function removalAccount(label, role = "EMPLOYEE") {
   assert.equal(response.status, 201, JSON.stringify(response.body));
   return response.body;
 }
+
+test("live events notify separate authenticated sessions when a vehicle is assigned", async () => {
+  assert.equal((await http.get("/api/events")).status, 401);
+  const employee = await removalAccount("live-technician");
+  const login = await call("post", "/auth/login", { email: employee.email, password: "Removal-test-2026" });
+  const token = login.body.token;
+  const vanId = "VAN-LIVE-TEST";
+  assert.equal((await call("post", "/service-vans", { id: vanId, name: "Live Test Vehicle" })).status, 201);
+  const server = await new Promise((resolve) => {
+    const listener = app.listen(0, "127.0.0.1", () => resolve(listener));
+  });
+  const controller = new AbortController();
+  const streams = [];
+  function eventReader(reader) {
+    let buffer = "";
+    const decoder = new TextDecoder();
+    return async function nextEvent() {
+      const timer = setTimeout(() => controller.abort(), 5000);
+      try {
+        while (!buffer.includes("\n\n")) {
+          const { value, done } = await reader.read();
+          assert.equal(done, false);
+          buffer += decoder.decode(value, { stream: true });
+        }
+        const index = buffer.indexOf("\n\n");
+        const frame = buffer.slice(0, index);
+        buffer = buffer.slice(index + 2);
+        return frame;
+      } finally { clearTimeout(timer); }
+    };
+  }
+  try {
+    for (const sessionToken of [adminToken, token]) {
+      const response = await fetch(`http://127.0.0.1:${server.address().port}/api/events`, {
+        headers: { Authorization: `Bearer ${sessionToken}` }, signal: controller.signal,
+      });
+      assert.equal(response.status, 200);
+      assert.match(response.headers.get("content-type"), /text\/event-stream/);
+      const next = eventReader(response.body.getReader());
+      assert.match(await next(), /event: ready/);
+      streams.push(next);
+    }
+    assert.deepEqual((await call("get", "/service-vans", {}, token)).body, []);
+    const assigned = await call("patch", `/service-vans/${vanId}/driver`, { driverId: employee.id });
+    assert.equal(assigned.status, 200, JSON.stringify(assigned.body));
+    for (const next of streams) assert.match(await next(), /event: change/);
+    assert.deepEqual((await call("get", "/service-vans", {}, token)).body.map((van) => van.id), [vanId]);
+    assert.equal((await call("get", "/service-vans", {}, employeeToken)).body.some((van) => van.id === vanId), false);
+  } finally {
+    controller.abort();
+    server.closeAllConnections();
+    await new Promise((resolve) => server.close(resolve));
+    await call("patch", `/service-vans/${vanId}/driver`, { driverId: "" });
+    await call("delete", `/service-vans/${vanId}`);
+    await call("delete", `/users/${employee.id}`);
+  }
+});
+
+test("brand logo API returns logo metadata and validates missing brands", async () => {
+  const created = await call("post", "/brands", { name: "Logo API Test" });
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => ({ ok: true, status: 200, json: async () =>
+    url.includes("summary") ? { wikibase_item: "Q123" } : { entities: { Q123: { claims: { P154: [
+      { rank: "normal", mainsnak: { datavalue: { value: "Example logo.svg" } } },
+    ] } } } },
+  });
+  try {
+    const result = await call("get", `/brands/${created.body.id}/logo`, {}, employeeToken);
+    assert.equal(result.status, 200);
+    assert.equal(result.body.name, "Logo API Test");
+    assert.equal(result.body.brandId, created.body.id);
+    assert.match(result.body.logoUrl, /^https:\/\/upload.wikimedia.org\/.+Example_logo.svg$/);
+    assert.match(result.body.sourceUrl, /^https:\/\/commons.wikimedia.org\/wiki\/File:/);
+  } finally {
+    globalThis.fetch = originalFetch;
+    await call("delete", `/brands/${created.body.id}`);
+  }
+  assert.equal((await call("get", `/brands/${created.body.id}/logo`)).status, 404);
+  assert.equal((await call("get", "/brands/not-an-id/logo")).status, 400);
+});
+
+test("brand removal enforces management permissions and preserves existing product details", async () => {
+  const created = await call("post", "/brands", { name: "Removal Test Brand" });
+  assert.equal(created.status, 201);
+  const item = await create({ brand: "Removal Test Brand" });
+  const path = `/brands/${created.body.id}`;
+  assert.equal((await call("delete", path, {}, employeeToken)).status, 403);
+  assert.equal((await call("get", "/brands")).body.some((brand) => brand.id === created.body.id), true);
+  assert.equal((await call("delete", path, {}, managerToken)).status, 200);
+  assert.equal((await call("get", "/brands")).body.some((brand) => brand.id === created.body.id), false);
+  assert.equal((await Product.findById(item.id)).brand, "Removal Test Brand");
+  assert.equal((await call("delete", path)).status, 404);
+  assert.equal((await call("delete", "/brands/invalid-id")).status, 400);
+});
+
+test("supplier validation rejects invalid registrations and edits without overwriting records", async () => {
+  for (const phone of ["abc1234567", "123", "1234567890123456", "12+3456789", "-------"]) {
+    const response = await call("post", "/suppliers", { name: "Invalid Supplier", phone });
+    assert.equal(response.status, 400, JSON.stringify(response.body));
+  }
+  for (const input of [{ name: "   " }, { name: "Invalid Supplier", email: "invalid-email" }, { name: "Invalid Supplier", contactPerson: false }, { name: "Invalid Supplier", address: "x".repeat(201) }]) {
+    assert.equal((await call("post", "/suppliers", input)).status, 400);
+  }
+  const registered = await call("post", "/suppliers", {
+    name: " Validation Supplier ", phone: "+63 917 845 2310", email: " SALES@EXAMPLE.COM ",
+  });
+  assert.equal(registered.status, 201, JSON.stringify(registered.body));
+  assert.equal(registered.body.name, "Validation Supplier");
+  assert.equal(registered.body.email, "sales@example.com");
+  const id = registered.body.id;
+  assert.equal((await call("post", "/suppliers", { name: "Validation Supplier", phone: "09171234567" })).status, 409);
+  assert.equal((await call("post", "/suppliers", { id, name: "Validation Supplier", phone: "bad phone" })).status, 400);
+  const listed = await call("get", "/suppliers");
+  assert.equal(listed.body.find((entry) => entry.id === id).phone, "+63 917 845 2310");
+  const edited = await call("post", "/suppliers", { id, name: "Validation Supplier", phone: "02 8863 5555" });
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.phone, "02 8863 5555");
+  await call("delete", `/suppliers/${id}`);
+  const optional = await call("post", "/suppliers", { name: "Optional Contact Supplier" });
+  assert.equal(optional.status, 201);
+  await call("delete", `/suppliers/${optional.body.id}`);
+});
+
+test("suppliers archive and restore without losing details or changing inventory history", async () => {
+  const registered = await call("post", "/suppliers", { name: "Archivable Supplier", phone: "09171234567", address: "Taguig", terms: "Net 30 Days" });
+  assert.equal(registered.status, 201);
+  const id = registered.body.id;
+  const item = await create({ supplier: registered.body.name });
+  const before = await Product.findById(item.id).lean();
+  await Supplier.collection.insertOne({ name: "Legacy Active Supplier" });
+  assert.ok((await call("get", "/suppliers")).body.some(entry => entry.name === "Legacy Active Supplier"));
+  assert.equal((await call("delete", `/suppliers/${id}`, undefined, employeeToken)).status, 403);
+  const archived = await call("delete", `/suppliers/${id}`, undefined, managerToken);
+  assert.equal(archived.status, 200);
+  assert.equal(archived.body.archived, true);
+  assert.equal((await call("get", "/suppliers")).body.some(entry => entry.id === id), false);
+  const archives = await call("get", "/suppliers", { archived: true });
+  const saved = archives.body.find(entry => entry.id === id);
+  assert.equal(saved.phone, "09171234567");
+  assert.equal(saved.address, "Taguig");
+  assert.equal((await call("post", "/suppliers", { name: "Archivable Supplier" })).status, 409);
+  assert.equal((await call("post", "/suppliers", { id, name: "Changed Archive" })).status, 404);
+  assert.equal((await call("post", `/suppliers/${id}/restore`, undefined, employeeToken)).status, 403);
+  const restored = await call("post", `/suppliers/${id}/restore`, undefined, managerToken);
+  assert.equal(restored.status, 200);
+  assert.equal(restored.body.id, id);
+  assert.equal(restored.body.archived, false);
+  assert.equal(restored.body.phone, "09171234567");
+  assert.ok((await call("get", "/suppliers")).body.some(entry => entry.id === id));
+  assert.equal((await call("get", "/suppliers", { archived: true })).body.some(entry => entry.id === id), false);
+  assert.deepEqual(await Product.findById(item.id).lean(), before);
+  const missing = new mongoose.Types.ObjectId().toString();
+  assert.equal((await call("delete", `/suppliers/${missing}`)).status, 404);
+  assert.equal((await call("post", `/suppliers/${missing}/restore`)).status, 404);
+  assert.equal((await call("get", "/suppliers", { archived: "invalid" })).status, 400);
+});
 
 test("technicians only see their own requests, including completed and deleted history", async () => {
   const item = await create();
@@ -421,6 +579,42 @@ test("vehicle registration saves photo-supported types and rejects retired class
   assert.equal(list.body.find((van) => van.id === "VAN-TYPE-1").vehicleType, "Pickup");
 });
 
+test("vehicle edits persist metadata and unchanged drivers while rejected edits roll back every field", async () => {
+  const [driver, other] = await User.insertMany(["primary", "other"].map(name => ({
+    email: `vehicle-edit-${name}@example.test`, fullName: `Vehicle Edit ${name}`, role: "EMPLOYEE", branchId,
+    passwordHash: "unused-test-hash",
+  })));
+  const id = "VAN-EDIT-ATOMIC";
+  await ServiceVan.create({ _id: id, name: "Original vehicle", plateNumber: "OLD-001", status: "AVAILABLE", driverId: String(driver._id), driverName: driver.fullName });
+  const changed = { name: "Renamed vehicle", plateNumber: "NEW-002", status: "ON_FIELD", driverId: String(driver._id) };
+  assert.equal((await call("patch", `/service-vans/${id}`, changed, managerToken)).status, 200);
+  let saved = await ServiceVan.findById(id);
+  assert.equal(saved.name, changed.name); assert.equal(saved.plateNumber, changed.plateNumber); assert.equal(saved.status, "ON_FIELD");
+  // Returning to base with the same driver must not call the prohibited driver-reassignment path.
+  assert.equal((await call("patch", `/service-vans/${id}`, { ...changed, status: "AVAILABLE" }, managerToken)).status, 200);
+  await ServiceVan.findByIdAndUpdate(id, { status: "ON_FIELD" });
+  const rejected = await call("patch", `/service-vans/${id}`, { name: "Must not persist", plateNumber: "BAD-003", status: "AVAILABLE", driverId: String(other._id) });
+  assert.equal(rejected.status, 409);
+  saved = await ServiceVan.findById(id);
+  assert.equal(saved.name, changed.name); assert.equal(saved.plateNumber, changed.plateNumber);
+  assert.equal(saved.status, "ON_FIELD"); assert.equal(saved.driverId, String(driver._id));
+  assert.equal((await call("patch", `/service-vans/${id}`, { name: "Forbidden" }, employeeToken)).status, 403);
+  assert.equal((await call("patch", `/service-vans/${id}`, { name: "Bad status", status: "INVALID" })).status, 400);
+  assert.equal((await ServiceVan.findById(id)).name, changed.name);
+});
+
+test("vehicle edit validates dispatch and unique assignments without partial metadata saves", async () => {
+  const id = "VAN-EDIT-EMPTY";
+  await ServiceVan.create({ _id: id, name: "Unassigned vehicle" });
+  assert.equal((await call("patch", `/service-vans/${id}`, { name: "Must not persist", status: "ON_FIELD", driverId: "" })).status, 400);
+  assert.equal((await ServiceVan.findById(id)).name, "Unassigned vehicle");
+  const assigned = await User.findOne({ email: "vehicle-edit-primary@example.test" });
+  assert.equal((await call("patch", `/service-vans/${id}`, { name: "Conflict", driverId: String(assigned._id) })).status, 409);
+  assert.equal((await ServiceVan.findById(id)).name, "Unassigned vehicle");
+  assert.equal((await call("patch", "/service-vans/LOCAL-WAREHOUSE", { name: "Warehouse edit" })).status, 400);
+  assert.equal((await call("patch", "/service-vans/VAN-EDIT-MISSING", { name: "Missing" })).status, 404);
+});
+
 test("only administrators can delete idle, unassigned service vehicles", async () => {
   const id = "VAN-DELETE-IDLE";
   await ServiceVan.create({ _id: id, name: "Idle Vehicle" });
@@ -565,6 +759,12 @@ test("keeps zero reorder levels and rejects duplicate SKUs within a branch", asy
 });
 
 test("validates negative amounts, whole-unit stock and material precision", async () => {
+  for (const quantity of ["1e3", "0x10", "12abc", "Infinity"]) {
+    assert.equal((await call("post", "/products", product({ quantity }))).status, 400);
+  }
+  for (const field of ["unitCost", "listPrice"]) {
+    assert.equal((await call("post", "/products", product({ [field]: 12.345 }))).status, 400);
+  }
   assert.equal((await call("post", "/products", product({ quantity: [] }))).status, 400);
   assert.equal((await call("post", "/products", product({ quantity: " " }))).status, 400);
   assert.equal(
@@ -620,6 +820,8 @@ test("validates negative amounts, whole-unit stock and material precision", asyn
 });
 
 test("rejects insufficient stock without saving a misleading movement", async () => {
+  const numericItem = await create({ quantity: 1 });
+  for (const delta of ["1e2", "0x10", "-1e2"]) assert.equal((await movement(numericItem, delta)).status, 400);
   const item = await create({ quantity: 3 });
   const before = await Movement.countDocuments({ productId: item.id });
   assert.equal((await movement(item, -5)).status, 409);
@@ -797,6 +999,10 @@ test("request approval does not deduct stock; fulfillment deducts exactly once",
     200,
   );
   assert.equal((await Product.findById(item.id)).quantity, 5);
+  const approvedStock = (await call("get", "/products", { branchId })).body.find(entry => entry.id === item.id);
+  assert.equal(approvedStock.approvedRequestQuantity, 2);
+  assert.equal(approvedStock.reservedQuantity, 0);
+  assert.equal(approvedStock.availableQuantity, 5);
   const results = await Promise.all([
     call("patch", path, { branchId, status: "FULFILLED" }),
     call("patch", path, { branchId, status: "FULFILLED" }),
@@ -813,6 +1019,11 @@ test("request approval does not deduct stock; fulfillment deducts exactly once",
   const vanLedger = await call("get", "/movements", { branchId: serviceVanId, search: reference.body.requestNumber }, employeeToken);
   assert.equal(vanLedger.body.total, 1);
   assert.equal(vanLedger.body.items[0].quantityDelta, 2);
+  assert.match(vanLedger.body.items[0].transferNumber, /^TRI\d{4,}$/);
+  assert.match(vanLedger.body.items[0].vehicleReceiptNumber, /^VAN\d{4,}$/);
+  const receiptSearch = await call("get", "/movements", { branchId: serviceVanId, search: vanLedger.body.items[0].vehicleReceiptNumber }, employeeToken);
+  assert.equal(receiptSearch.body.total, 1);
+  assert.equal(receiptSearch.body.items[0].id, vanLedger.body.items[0].id);
   const list = await call("get", "/requests", { branchId }, employeeToken);
   const saved = list.body.find((entry) => entry.id === response.body.id);
   assert.equal(saved.requestNumber, reference.body.requestNumber);
@@ -987,10 +1198,90 @@ test("transfers save two linked movements and preserve the combined quantity", a
     referenceId: response.body.referenceId,
   });
   assert.equal(records.length, 2);
+  const outgoing = records.find((entry) => entry.movementType === "TRANSFER_OUT");
+  const incoming = records.find((entry) => entry.movementType === "TRANSFER_IN");
+  assert.match(outgoing.transferNumber, /^TRO\d{4,}$/);
+  assert.match(incoming.transferNumber, /^TRI\d{4,}$/);
+  for (const entry of records) {
+    const found = await call("get", "/movements", { branchId, search: entry.transferNumber });
+    assert.equal(found.body.total, 1);
+    assert.equal(found.body.items[0].transferNumber, entry.transferNumber);
+  }
   assert.equal(
     records.reduce((sum, entry) => sum + entry.quantityDelta, 0),
     0,
   );
+});
+
+test("vehicle returns identify both ledger entries independently of the entered reason", async () => {
+  const item = await create({ quantity: 3 });
+  const load = await call("post", "/transfers", { branchId, productId: item.id, destinationId: serviceVanId, quantity: 2, reason: "Loadout" });
+  assert.equal(load.status, 201);
+  const vanItem = await Product.findOne({ branchId: serviceVanId, sku: item.sku });
+  const returned = await call("post", "/transfers", { branchId: serviceVanId, productId: String(vanItem._id), destinationId: branchId, quantity: 1, reason: "Unused materials returned" }, managerToken);
+  assert.equal(returned.status, 201, JSON.stringify(returned.body));
+  const pair = await Movement.find({ referenceId: returned.body.referenceId }).lean();
+  assert.equal(pair.length, 2);
+  assert.ok(pair.every((entry) => entry.isVehicleReturn === true));
+  assert.equal(pair.reduce((sum, entry) => sum + entry.quantityDelta, 0), 0);
+  const found = await call("get", "/movements", { branchId, type: "RETURNED", search: item.sku });
+  assert.equal(found.body.total, 2);
+  assert.ok(found.body.items.every((entry) => entry.referenceId === returned.body.referenceId));
+  const legacy = await Movement.create({ branchId, movementType: "TRANSFER_IN", reason: "Emergency: Van Return to Warehouse LOCAL-WAREHOUSE", quantityDelta: 1, sku: item.sku });
+  const old = await call("get", "/movements", { branchId, type: "RETURNED", search: item.sku });
+  assert.equal(old.body.total, 3);
+  assert.ok(old.body.items.some((entry) => entry.id === String(legacy._id)));
+});
+
+test("concurrent transfers have unique directional numbers and separate shared links", async () => {
+  const products = await Promise.all(Array.from({ length: 4 }, () => create({ quantity: 2 })));
+  const transfers = await Promise.all(products.map((item) => call("post", "/transfers", {
+    branchId, destinationId: serviceVanId, productId: item.id, quantity: 1, reason: "Numbering concurrency check",
+  })));
+  for (const response of transfers) assert.equal(response.status, 201, JSON.stringify(response.body));
+  const references = transfers.map((response) => response.body.referenceId);
+  assert.equal(new Set(references).size, 4);
+  const records = await Movement.find({ referenceId: { $in: references } }).lean();
+  assert.equal(records.length, 8);
+  assert.equal(new Set(records.map((entry) => entry.transferNumber)).size, 8);
+  for (const referenceId of references) {
+    const pair = records.filter((entry) => entry.referenceId === referenceId);
+    assert.equal(pair.length, 2);
+    assert.match(pair.find((entry) => entry.movementType === "TRANSFER_IN").transferNumber, /^TRI\d{4,}$/);
+    assert.match(pair.find((entry) => entry.movementType === "TRANSFER_OUT").transferNumber, /^TRO\d{4,}$/);
+  }
+});
+
+test("existing transfer numbering is repeatable and preserves references and stock history", async () => {
+  const createdAt = new Date("2025-01-01T00:00:00Z");
+  const entries = await Movement.create([
+    { branchId, movementType: "TRANSFER_OUT", quantityDelta: -1, beforeQuantity: 3, afterQuantity: 2, referenceId: "TRA-LEGACY", createdAt },
+    { branchId: serviceVanId, movementType: "TRANSFER_IN", quantityDelta: 1, beforeQuantity: 0, afterQuantity: 1, referenceId: "TRA-LEGACY", createdAt },
+  ]);
+  await assignExistingTransferNumbers();
+  const first = await Movement.find({ _id: { $in: entries.map((entry) => entry._id) } }).sort({ movementType: 1 }).lean();
+  assert.match(first[0].transferNumber, /^TRI\d{4,}$/);
+  assert.match(first[1].transferNumber, /^TRO\d{4,}$/);
+  for (const entry of first) {
+    assert.equal(entry.referenceId, "TRA-LEGACY");
+    assert.equal(entry.createdAt.toISOString(), createdAt.toISOString());
+    assert.equal(entry.afterQuantity - entry.beforeQuantity, entry.quantityDelta);
+  }
+  await assignExistingTransferNumbers();
+  const second = await Movement.find({ _id: { $in: entries.map((entry) => entry._id) } }).sort({ movementType: 1 }).lean();
+  assert.deepEqual(second, first);
+});
+
+test("legacy request receipts gain repeatable VAN numbers without changing history", async () => {
+  const legacy = await Movement.create({ branchId: serviceVanId, movementType: "TRANSFER_IN", requestNumber: "REQ9999", transferNumber: "TRI9999", referenceId: "original-request-id", quantityDelta: 2, beforeQuantity: 1, afterQuantity: 3 });
+  const before = legacy.toObject();
+  await assignExistingTransferNumbers();
+  const first = await Movement.findById(legacy._id).lean();
+  assert.match(first.vehicleReceiptNumber, /^VAN\d{4,}$/);
+  const { vehicleReceiptNumber, ...preserved } = first;
+  assert.deepEqual(preserved, before);
+  await assignExistingTransferNumbers();
+  assert.deepEqual(await Movement.findById(legacy._id).lean(), first);
 });
 
 test("a destination mismatch rolls back both sides of a transfer", async () => {
@@ -1133,6 +1424,39 @@ test("archiving requires zero stock and no open requests; restore preserves iden
     (await call("post", `/products/${item.id}/restore`, { branchId })).body.id,
     item.id,
   );
+});
+
+test("warehouse chart movements exclude vehicle receipts from direct loadouts and fulfilled requests", async () => {
+  const item = await create({ quantity: 3 });
+  const transfer = await call("post", "/transfers", {
+    branchId, productId: item.id, destinationId: serviceVanId, quantity: 1, reason: "Chart regression loadout", isVanTransfer: true,
+  });
+  assert.equal(transfer.status, 201, JSON.stringify(transfer.body));
+  const reference = await call("get", "/requests/reference", {}, employeeToken);
+  const request = await call("post", "/requests", {
+    branchId, productId: item.id, quantityNeeded: 2, requestId: reference.body.id,
+  }, employeeToken);
+  assert.equal(request.status, 201, JSON.stringify(request.body));
+  assert.equal((await call("patch", `/requests/${request.body.id}`, { branchId, status: "APPROVED" })).status, 200);
+  assert.equal((await call("patch", `/requests/${request.body.id}`, { branchId, status: "FULFILLED" })).status, 200);
+  assert.equal((await Product.findById(item.id)).quantity, 0);
+  assert.equal((await Product.findOne({ sku: item.sku, branchId: serviceVanId })).quantity, 3);
+
+  const ledger = await call("get", "/movements", { branchId, search: item.sku, pageSize: 100 });
+  assert.equal(ledger.body.total, 5);
+  const first = await call("get", "/movements", { branchId, scope: "branch", search: item.sku, pageSize: 2 });
+  const second = await call("get", "/movements", { branchId, scope: "branch", search: item.sku, pageSize: 2, page: 2 });
+  const movements = [...first.body.items, ...second.body.items];
+  assert.equal(first.body.total, 3);
+  assert.equal(second.body.total, 3);
+  assert.equal(movements.length, 3);
+  assert.ok(movements.every((entry) => entry.branchId === branchId));
+  assert.equal(movements.reduce((sum, entry) => sum + Math.max(0, entry.quantityDelta), 0), 3);
+  assert.equal(movements.reduce((sum, entry) => sum + Math.min(0, entry.quantityDelta), 0), -3);
+  assert.equal(movements.reduce((sum, entry) => sum + entry.quantityDelta, 0), 0);
+  const vehicle = await call("get", "/movements", { branchId: serviceVanId, scope: "branch", search: item.sku }, employeeToken);
+  assert.equal(vehicle.body.total, 2);
+  assert.equal((await call("get", "/movements", { branchId, scope: "invalid" })).status, 400);
 });
 
 test("ledger pagination reaches older records and treats search as literal text", async () => {
@@ -1340,6 +1664,9 @@ test("logout and expired sessions are rejected by the server", async () => {
 });
 
 test("administrator can create accounts for the Taguig warehouse", async () => {
+  for (const password of ["lowercase12345", "UPPERCASE12345", "MissingNumbers", "Weak-password-2026 "]) {
+    assert.equal((await call("post", "/users", { email: "weak@example.test", password, fullName: "Weak Password", role: "EMPLOYEE", branchId })).status, 400);
+  }
   const response = await call("post", "/users", {
     email: "new@example.test",
     password: "New-password-2026",

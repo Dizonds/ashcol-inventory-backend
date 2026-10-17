@@ -7,6 +7,7 @@ import inventory from "./routes/inventory.js";
 import requests from "./routes/requests.js";
 import jobOrders from "./routes/job-orders.js";
 import { updateAccount } from "./accounts.js";
+import { streamUpdates, watchMutations } from "./liveUpdates.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -18,11 +19,13 @@ app.use(
   }),
 );
 app.use(express.json({ limit: "32kb" }));
+app.use("/api", watchMutations);
 app.get("/api/health", (req, res) => {
   const ok = mongoose.connection.readyState === 1;
   res.status(ok ? 200 : 503).json({ ok });
 });
 app.use("/api/auth", authRouter);
+app.get("/api/events", authenticate, streamUpdates);
 app.patch("/api/auth/me", authenticate, (req, res, next) => {
   updateAccount(req, req.user._id).then((user) => res.json(user)).catch(next);
 });

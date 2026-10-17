@@ -77,7 +77,7 @@ try {
     await tech.getByRole("row").filter({ hasText: item.name }).getByRole("button", { name: "Record Usage", exact: true }).click();
     const dialog = tech.getByRole("dialog");
     await dialog.getByRole("textbox", { name: "Usage ID", exact: true }).waitFor();
-    await tech.waitForFunction(() => /^USE\d+$/.test(document.querySelector('input[aria-label="Usage ID"]')?.value || ""));
+    await tech.waitForFunction(() => /^USE - \d+$/.test(document.querySelector('input[aria-label="Usage ID"]')?.value || ""));
     usedIds.push(await dialog.getByRole("textbox", { name: "Usage ID", exact: true }).inputValue());
     const currentJob = dialog.getByRole("textbox", { name: "Current Job Order", exact: true });
     assert.equal(await currentJob.inputValue(), "JOB - 0001 · Office AC installation");
@@ -116,7 +116,9 @@ try {
   await tech.getByTitle("View vehicle details").click();
   await tech.getByRole("row").filter({ hasText: "Copper pipe" }).getByRole("button", { name: "Record Usage", exact: true }).click();
   await tech.getByText("No current job assigned. Ask your admin or manager to assign a job from Job Orders.", { exact: true }).waitFor();
-  assert.equal(await tech.getByRole("dialog").getByRole("button", { name: "Record Usage", exact: true }).isDisabled(), true);
+  const missingJobDialog = tech.getByRole("dialog");
+  await missingJobDialog.getByRole("button", { name: "Record Usage", exact: true }).click();
+  assert.equal(await missingJobDialog.getByRole("textbox", { name: "Current Job Order", exact: true }).getAttribute("aria-invalid"), "true");
   assert.deepEqual(errors, []);
   console.log("Job browser checks passed: manager creates and dispatches the current job, technician records two SKUs without a job dropdown, distinct Usage IDs reconcile with stock and ledger, completion clears the current assignment.");
 } catch (error) {
@@ -127,7 +129,7 @@ try {
   throw error;
 } finally {
   if (browser) await browser.close();
-  if (server) await new Promise((resolve) => server.close(resolve));
+  if (server) { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); }
   await mongoose.disconnect();
   if (database) await database.stop();
 }

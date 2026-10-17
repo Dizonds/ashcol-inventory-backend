@@ -72,6 +72,7 @@ const movementSchema = new mongoose.Schema(
     brand: String,
     unitOfMeasure: String,
     movementType: String,
+    isVehicleReturn: Boolean,
     quantityDelta: Number,
     beforeQuantity: Number,
     afterQuantity: Number,
@@ -79,6 +80,8 @@ const movementSchema = new mongoose.Schema(
     workOrderId: String,
     jobOrderId: { type: mongoose.Schema.Types.ObjectId, ref: "JobOrder" },
     referenceId: String,
+    transferNumber: String,
+    vehicleReceiptNumber: String,
     requestNumber: String,
     performedBy: String,
     performedByName: String,
@@ -88,6 +91,8 @@ const movementSchema = new mongoose.Schema(
 );
 movementSchema.index({ branchId: 1, createdAt: -1 });
 movementSchema.index({ jobOrderId: 1, createdAt: -1 });
+movementSchema.index({ transferNumber: 1 }, { unique: true, sparse: true });
+movementSchema.index({ vehicleReceiptNumber: 1 }, { unique: true, sparse: true });
 
 const userSchema = new mongoose.Schema(
   {
@@ -249,6 +254,7 @@ export const Supplier = mongoose.model(
   "Supplier",
   new mongoose.Schema(
     {
+      archived: { type: Boolean, default: false },
       name: { type: String, required: true, unique: true, trim: true },
       contactPerson: { type: String, default: "" },
       phone: { type: String, default: "" },

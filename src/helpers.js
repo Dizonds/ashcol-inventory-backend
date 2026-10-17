@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { reserveTransferNumber, reserveVehicleReceiptNumber } from "./transfer-numbers.js";
 import { ServiceVan, Movement, Product } from "./models.js";
 
 export function fail(message, status = 400) {
@@ -28,6 +29,8 @@ export function number(value, label) {
   )
     fail(`${label} is required.`);
   const result = Number(value);
+  if (typeof value === "string" && !/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(value.trim()))
+    fail(`${label} must be a number without letters or symbols.`);
   if (!Number.isFinite(result) || result < 0 || result > 100000000)
     fail(`${label} must be between 0 and 100,000,000.`);
   return result;
@@ -145,6 +148,10 @@ export function productData(body) {
     ],
   };
   const allowedCategories = categoriesByType[data.itemType] || [];
+  for (const [label, amount] of [["Unit cost", data.unitCost], ["Selling price", data.listPrice]]) {
+    if (Math.abs(amount * 100 - Math.round(amount * 100)) > 0.00001)
+      fail(`${label} must use at most 2 decimal places.`);
+  }
   if (!allowedCategories.includes(data.category))
     fail(`Category "${data.category}" does not match the item type "${data.itemType}".`);
   if (
@@ -186,6 +193,8 @@ export async function lockServiceVan(branchId, session) {
 export async function recordMovement(item, delta, details, user, session) {
   // Inventory writes and vehicle deletion must not pass each other unnoticed.
   await lockServiceVan(item.branchId, session);
+  const transferNumber = await reserveTransferNumber(details.movementType, session);
+  const vehicleReceiptNumber = await reserveVehicleReceiptNumber(details, session);
   return Movement.create(
     [
       {
@@ -203,6 +212,8 @@ export async function recordMovement(item, delta, details, user, session) {
         performedBy: String(user._id),
         performedByName: user.fullName,
         ...details,
+        ...(transferNumber ? { transferNumber } : {}),
+        ...(vehicleReceiptNumber ? { vehicleReceiptNumber } : {}),
       },
     ],
     { session },

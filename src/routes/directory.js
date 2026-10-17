@@ -2,7 +2,8 @@ import { Router } from "express";
 import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter, JobOrder, VEHICLE_TYPES } from "../models.js";
 import { admin, manage, hashPassword } from "../auth.js";
 import { text, fail, json, transaction, lockServiceVan } from "../helpers.js";
-import { updateAccount } from "../accounts.js";
+import { updateAccount, validateNewPassword } from "../accounts.js";
+import { getBrandLogo } from "../brandLogos.js";
 
 const router = Router();
 
@@ -93,6 +94,36 @@ router.post("/service-vans", admin, (req, res, next) => {
     .then((item) => res.status(201).json(json(item)))
     .catch(next);
 });
+// Save the vehicle edit form as one transaction: a rejected driver change must
+// not leave metadata or status partially updated.
+router.patch("/service-vans/:id", manage, (req, res, next) => {
+  if (req.params.id === "LOCAL-WAREHOUSE") fail("The warehouse is not a service vehicle.");
+  const fields = {};
+  if (req.body.name !== undefined) fields.name = text(req.body.name, "Vehicle name");
+  if (req.body.plateNumber !== undefined) fields.plateNumber = text(req.body.plateNumber, "Plate number", false);
+  if (req.body.status !== undefined) {
+    fields.status = text(req.body.status, "Status");
+    if (!["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"].includes(fields.status)) fail("Invalid status.");
+  }
+  transaction(async (session) => {
+    const van = await lockServiceVan(req.params.id, session);
+    if (req.body.driverId !== undefined) {
+      const driver = await resolveDriver(req.body.driverId, "", session);
+      const sameDriver = driver.driverId
+        ? van.driverId ? van.driverId === driver.driverId :
+          [driver.driverName, ...["EMPLOYEE", "MANAGER", "ADMIN"].map(role => `${driver.driverName} (${role})`)].includes(van.driverName)
+        : !van.driverId && !van.driverName;
+      if (!sameDriver && ["ON_FIELD", "ARRIVED"].includes(van.status))
+        fail("The driver cannot be changed after the vehicle has been dispatched or has arrived on site.", 409);
+      await ensureDriverAvailable(driver, van._id, session);
+      Object.assign(fields, driver);
+    }
+    if (["ON_FIELD", "ARRIVED"].includes(fields.status || van.status) && !(fields.driverName ?? van.driverName))
+      fail("An assigned technician/driver is required before dispatching or marking the van as arrived on field.");
+    return ServiceVan.findByIdAndUpdate(van._id, { $set: fields }, { new: true, session, runValidators: true });
+  }).then(item => res.json(json(item))).catch(next);
+});
+
 // Only idle, unassigned, empty vehicles can be removed.
 router.delete("/service-vans/:id", admin, (req, res, next) => {
   if (req.params.id === "LOCAL-WAREHOUSE") fail("The warehouse is not a service vehicle.");
@@ -171,6 +202,16 @@ router.get("/brands", (req, res, next) => {
     .then((items) => res.json(items.map(json)))
     .catch(next);
 });
+router.get("/brands/:id/logo", async (req, res, next) => {
+  try {
+    const brand = await Brand.findById(req.params.id);
+    if (!brand) fail("Brand not found.", 404);
+    const logo = await getBrandLogo(brand.name);
+    res.json({ brandId: String(brand._id), name: brand.name, logoUrl: logo?.url || null, sourceUrl: logo?.sourceUrl || null });
+  } catch (err) {
+    next(err);
+  }
+});
 router.post("/brands", manage, (req, res, next) => {
   const name = text(req.body.name, "Brand");
   Brand.findOne({ name })
@@ -179,8 +220,17 @@ router.post("/brands", manage, (req, res, next) => {
     .then((item) => res.status(201).json(json(item)))
     .catch(next);
 });
+router.delete("/brands/:id", manage, (req, res, next) => {
+  Brand.findByIdAndDelete(req.params.id)
+    .then((brand) => {
+      if (!brand) fail("Brand not found.", 404);
+      res.json({ success: true });
+    })
+    .catch(next);
+});
 router.get("/suppliers", (req, res, next) => {
-  Supplier.find()
+  if (req.query.archived !== undefined && !["true", "false"].includes(req.query.archived)) fail("Choose active or archived suppliers.");
+  Supplier.find({ archived: req.query.archived === "true" ? true : { $ne: true } })
     .sort({ name: 1 })
     .then((items) => res.json(items.map(json)))
     .catch(next);
@@ -189,36 +239,47 @@ router.post("/suppliers", manage, (req, res, next) => {
   const name = text(req.body.name, "Supplier name");
   const updateData = {
     name,
-    contactPerson: text(req.body.contactPerson || "", "Contact person", false),
-    phone: text(req.body.phone || "", "Phone", false),
-    email: text(req.body.email || "", "Email", false),
-    address: text(req.body.address || "", "Address", false),
-    terms: text(req.body.terms || "", "Terms", false),
+    contactPerson: text(req.body.contactPerson ?? "", "Contact person", false),
+    phone: text(req.body.phone ?? "", "Phone", false),
+    email: text(req.body.email ?? "", "Email", false).toLowerCase(),
+    address: text(req.body.address ?? "", "Address", false),
+    terms: text(req.body.terms ?? "", "Terms", false),
   };
+  const phoneDigits = updateData.phone.replace(/\D/g, "");
+  if (updateData.phone && (
+    !/^\+?[0-9][0-9 ()-]*[0-9]$/.test(updateData.phone) ||
+    phoneDigits.length < 7 || phoneDigits.length > 15 || updateData.phone.length > 30
+  )) fail("Phone number must contain 7–15 digits, with an optional leading +, spaces, hyphens or parentheses.");
+  if (updateData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateData.email))
+    fail("Enter a valid supplier email address.");
 
   const id = req.body.id;
   if (id) {
-    Supplier.findByIdAndUpdate(id, { $set: updateData }, { new: true })
+    Supplier.findOneAndUpdate({ _id: id, archived: { $ne: true } }, { $set: updateData }, { new: true })
       .then((item) => {
-        if (!item) fail("Supplier not found.", 404);
+        if (!item) fail("Active supplier not found. Restore archived suppliers before editing.", 404);
         res.json(json(item));
       })
       .catch(next);
   } else {
-    Supplier.findOneAndUpdate(
-      { name },
-      { $set: updateData },
-      { upsert: true, new: true },
-    )
+    Supplier.create(updateData)
       .then((item) => res.status(201).json(json(item)))
       .catch(next);
   }
 });
 router.delete("/suppliers/:id", manage, (req, res, next) => {
-  Supplier.findByIdAndDelete(req.params.id)
+  Supplier.findByIdAndUpdate(req.params.id, { $set: { archived: true } }, { new: true })
     .then((item) => {
       if (!item) fail("Supplier not found.", 404);
-      res.json({ success: true, message: "Supplier deleted." });
+      res.json(json(item));
+    })
+    .catch(next);
+});
+router.post("/suppliers/:id/restore", manage, (req, res, next) => {
+  Supplier.findByIdAndUpdate(req.params.id, { $set: { archived: false } }, { new: true })
+    .then((item) => {
+      if (!item) fail("Supplier not found.", 404);
+      res.json(json(item));
     })
     .catch(next);
 });
@@ -276,9 +337,7 @@ router.post("/users", admin, (req, res, next) => {
     fail("Last name must contain 2-50 letters and valid name characters.");
   const fullName = `${firstName} ${lastName}`;
   const password = typeof req.body.password === "string" ? req.body.password : "";
-  if (!password.trim()) fail("Password is required.");
-  if (/\s/.test(password)) fail("Password cannot contain spaces.");
-  if (password.length < 10) fail("Use at least 10 characters for passwords.");
+  validateNewPassword(password);
   const role = text(req.body.role, "Role");
   if (!["ADMIN", "MANAGER", "EMPLOYEE"].includes(role)) fail("Choose a valid role.");
   const branchId = text(req.body.branchId, "Inventory scope");

@@ -7,10 +7,13 @@
     "dev": "node --watch src/index.js",
     "mongo": "\"C:\\Program Files\\MongoDB\\Server\\8.3\\bin\\mongod.exe\" --dbpath C:\\Users\\usher\\ASHCOL\\.local-mongo --replSet rs0 --bind_ip 127.0.0.1 --port 27018",
     "bootstrap": "node scripts/bootstrap.js",
+    "seed:demo-two-months": "node scripts/seed-two-month-demo.js",
     "migrate:service-vans": "node scripts/migrate-service-vans.js",
     "migrate": "node scripts/migrate.js",
-    "test": "node --test --test-concurrency=1 test/inventory.test.js",
-    "test:browser": "node scripts/browser-smoke.js"
+    "test": "node --test --test-concurrency=1 test/brandLogos.test.js test/liveUpdates.test.js test/inventory.test.js",
+    "test:browser": "node scripts/qa-smoke.js",
+    "test:live": "node scripts/live-updates-smoke.js",
+    "test:qa": "node scripts/qa-smoke.js && node scripts/request-fulfillment-smoke.js && node scripts/job-orders-smoke.js && node scripts/live-updates-smoke.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

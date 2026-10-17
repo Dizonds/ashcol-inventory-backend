@@ -50,7 +50,7 @@ try {
   const tech = await login("technician");
   await tech.getByRole("button", { name: "New Request", exact: true }).click();
   const dialog = tech.getByRole("dialog");
-  assert.equal(await dialog.getByRole("textbox", { name: "Receiving vehicle", exact: true }).inputValue(), "Request Van");
+  await dialog.getByText("Request Van", { exact: true }).waitFor();
   for (const [name, option] of [["Request item type", "AC Unit"], ["Request brand", "Carrier"], ["Request item", "Test AC unit"]]) {
     await dialog.getByRole("combobox", { name, exact: true }).click();
     await tech.locator(".ant-select-item-option").filter({ hasText: option }).click();
@@ -60,6 +60,7 @@ try {
   await dialog.waitFor({ state: "hidden" });
   const request = await PartRequest.findOne({ requestedBy: String(technician._id) });
   assert.ok(request);
+  assert.match(request.requestNumber, /^REQ\d{4,}$/);
   assert.equal(request.destinationVanId, "VAN-REQUEST");
   const manager = await login("manager");
   await manager.getByRole("button", { name: "Approve", exact: true }).click();
@@ -69,8 +70,10 @@ try {
   assert.equal((await Product.findById(source._id)).quantity, 3);
   assert.equal((await Product.findOne({ branchId: "VAN-REQUEST", sku: source.sku })).quantity, 2);
   assert.equal(await Movement.countDocuments({ referenceId: String(request._id) }), 2);
+  const receipt = await Movement.findOne({ referenceId: String(request._id), movementType: "TRANSFER_IN" });
+  assert.match(receipt.vehicleReceiptNumber, /^VAN\d{4,}$/);
   await tech.bringToFront();
-  await tech.reload();
+  await tech.getByText("FULFILLED", { exact: true }).waitFor();
   await tech.getByRole("button", { name: "Service Vehicles", exact: true }).click();
   await tech.getByTitle("View vehicle details").click();
   await tech.getByRole("row").filter({ hasText: "Test AC unit" }).waitFor();
@@ -80,7 +83,7 @@ try {
   console.log("PASS: unassigned technician blocked; request -> approval -> fulfillment credits the assigned van and appears in its inventory.");
 } finally {
   await browser?.close();
-  if (server) await new Promise((resolve) => server.close(resolve));
+  if (server) { server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); }
   await mongoose.disconnect();
   await database?.stop();
 }

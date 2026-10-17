@@ -16,7 +16,6 @@ import {
   transaction,
   recordMovement,
   changeStock,
-  generateTicket,
 } from "../helpers.js";
 
 const router = Router();
@@ -45,10 +44,10 @@ router.get("/products", (req, res, next) => {
       });
       const enriched = items.map((doc) => {
         const itemObj = json(doc);
-        const reserved = reservedMap[itemObj.id] || 0;
-        itemObj.reservedQuantity = reserved;
-        itemObj.availableQuantity =
-          Math.max(0, Math.round((itemObj.quantity - reserved) * 1000) / 1000);
+        itemObj.approvedRequestQuantity = reservedMap[itemObj.id] || 0;
+        // Approval is demand awaiting fulfillment, not a stock reservation.
+        itemObj.reservedQuantity = 0;
+        itemObj.availableQuantity = itemObj.quantity;
         return itemObj;
       });
       res.json(enriched);
@@ -140,6 +139,8 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
   if (!["number", "string"].includes(typeof req.body.delta)) {
     fail("Stock change must be a number.");
   }
+  if (typeof req.body.delta === "string" && !/^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(req.body.delta.trim()))
+    fail("Stock change must be a number without letters or symbols.");
   const delta = Number(req.body.delta);
   if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 100000000)
     fail("Stock change must be a non-zero number.");
@@ -335,7 +336,7 @@ router.post("/transfers", manage, (req, res, next) => {
   if (!quantity) fail("Transfer quantity must be positive.");
   const destinationId = text(req.body.destinationId, "Destination");
   const reason = text(req.body.reason, "Transfer receipt/reference");
-  const referenceId = generateTicket("TRA");
+  const referenceId = randomUUID();
   branchScope(req, req.body.branchId)
     .then((branchId) => {
       if (branchId === destinationId)
@@ -369,6 +370,7 @@ router.post("/transfers", manage, (req, res, next) => {
         }
         const isVanTransfer =
           branchId !== "LOCAL-WAREHOUSE" || destinationId !== "LOCAL-WAREHOUSE";
+        const isVehicleReturn = branchId !== "LOCAL-WAREHOUSE" && destinationId === "LOCAL-WAREHOUSE";
         if (!isVanTransfer && req.user.role !== "ADMIN") {
           return res
             .status(403)
@@ -382,6 +384,7 @@ router.post("/transfers", manage, (req, res, next) => {
             -quantity,
             {
               movementType: "TRANSFER_OUT",
+              isVehicleReturn,
               reason,
               referenceId,
             },
@@ -431,6 +434,7 @@ router.post("/transfers", manage, (req, res, next) => {
                 quantity,
                 {
                   movementType: "TRANSFER_IN",
+                  isVehicleReturn,
                   reason,
                   referenceId,
                 },
@@ -445,6 +449,8 @@ router.post("/transfers", manage, (req, res, next) => {
     .catch(next);
 });
 router.get("/movements", (req, res, next) => {
+  const scope = req.query.scope || "all";
+  if (!["all", "branch"].includes(scope)) fail("Choose a valid movement scope.");
   const page = Math.max(1, Math.floor(Number(req.query.page) || 1));
   const pageSize = Math.min(
     100,
@@ -460,7 +466,7 @@ router.get("/movements", (req, res, next) => {
   branchScope(req, req.query.branchId)
     .then((branchId) => {
       const scopeIds = [branchId];
-      if (branchId === "LOCAL-WAREHOUSE") {
+      if (branchId === "LOCAL-WAREHOUSE" && scope === "all") {
         return ServiceVan.find({
           ...(req.user.role === "EMPLOYEE"
             ? {
@@ -480,8 +486,15 @@ router.get("/movements", (req, res, next) => {
     })
     .then((scopeIds) => {
       const filter = { branchId: scopeIds.length === 1 ? scopeIds[0] : { $in: scopeIds } };
-      if (req.query.type)
+      if (req.query.type === "RETURNED") {
+        filter.movementType = { $in: ["TRANSFER_IN", "TRANSFER_OUT"] };
+        filter.$and = [{ $or: [
+          { isVehicleReturn: true },
+          { isVehicleReturn: { $exists: false }, reason: /^(Emergency:\s*)?Van Return to Warehouse(?:\s|$)/i },
+        ] }];
+      } else if (req.query.type) {
         filter.movementType = text(req.query.type, "Movement type");
+      }
       if (req.query.search) {
         const search = text(req.query.search, "Search").replace(
           /[.*+?^${}()|[\]\\]/g,
@@ -497,6 +510,8 @@ router.get("/movements", (req, res, next) => {
           "workOrderId",
           "performedByName",
           "referenceId",
+          "transferNumber",
+          "vehicleReceiptNumber",
           "requestNumber",
         ].map((field) => ({ [field]: { $regex: search, $options: "i" } }));
       }
