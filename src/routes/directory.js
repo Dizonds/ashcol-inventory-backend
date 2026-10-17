@@ -221,11 +221,13 @@ router.post("/brands", manage, (req, res, next) => {
     .catch(next);
 });
 router.delete("/brands/:id", manage, (req, res, next) => {
-  Brand.findByIdAndDelete(req.params.id)
-    .then((brand) => {
-      if (!brand) fail("Brand not found.", 404);
-      res.json({ success: true });
-    })
+  transaction(async (session) => {
+    const brand = await Brand.findByIdAndDelete(req.params.id, { session });
+    if (!brand) fail("Brand not found.", 404);
+    await Product.updateMany({ brandId: brand._id }, { $unset: { brandId: 1 } }, { session });
+    return { success: true };
+  })
+    .then((result) => res.json(result))
     .catch(next);
 });
 router.get("/suppliers", (req, res, next) => {

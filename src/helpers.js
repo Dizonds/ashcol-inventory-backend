@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { reserveTransferNumber, reserveVehicleReceiptNumber } from "./transfer-numbers.js";
-import { ServiceVan, Movement, Product } from "./models.js";
+import { ServiceVan, Movement, Product, Brand, Supplier } from "./models.js";
 
 export function fail(message, status = 400) {
   const error = new Error(message);
@@ -161,6 +161,18 @@ export function productData(body) {
     fail("AC units must use UNIT or SET.");
   checkQuantity(data.reorderLevel, data.unitOfMeasure);
   return data;
+}
+export async function productDirectoryReferences(data, session) {
+  const [brand, supplier] = await Promise.all([
+    Brand.findOne({ name: data.brand }).select("_id").session(session || null),
+    data.supplier
+      ? Supplier.findOne({ name: data.supplier }).select("_id").session(session || null)
+      : null,
+  ]);
+  return {
+    brandId: brand?._id || null,
+    supplierId: supplier?._id || null,
+  };
 }
 export function json(doc) {
   const result = doc.toObject();

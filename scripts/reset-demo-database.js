@@ -607,7 +607,7 @@ async function resetAndSeed() {
     });
     if (status === "FULFILLED") history.push({ status, performedByName: adminUser.fullName, at: dayAt(1, 10) });
     await PartRequest.create({
-      _id: reference._id, requestNumber: reference.requestNumber, workOrderId: reference.requestNumber,
+      _id: reference._id, requestNumber: reference.requestNumber,
       branchId: requestItem.branchId, productId: requestItem._id, sku: requestItem.sku,
       destinationVanId: "VAN-01", destinationVanName: serviceVans[0].name,
       itemName: requestItem.name, itemType: requestItem.itemType, category: requestItem.category,
@@ -618,7 +618,7 @@ async function resetAndSeed() {
       ...(status === "FULFILLED" ? { fulfilledByName: adminUser.fullName, fulfilledAt: dayAt(1, 10) } : {}),
     });
     if (status === "FULFILLED") {
-      const receipt = { referenceId: String(reference._id), requestNumber: reference.requestNumber, workOrderId: reference.requestNumber };
+      const receipt = { referenceId: String(reference._id), requestNumber: reference.requestNumber };
       await recordMovement(requestItem, -2, "REQUEST_ISSUE", 1, "Materials released for approved service request", receipt);
       let target = createdProducts.find((item) => item.branchId === "VAN-01" && item.sku === requestItem.sku);
       if (!target) {

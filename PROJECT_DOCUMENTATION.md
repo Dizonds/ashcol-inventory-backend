@@ -133,6 +133,7 @@ The database is structured in MongoDB under the `ashcol_inventory` database. All
    * `name` (`String`, required): Product model or description.
    * `itemType` (`String`, enum: `["AC Unit", "Material / Part", "Spare Part", "Consumable", "Tool / Equipment"]`).
    * `category` (`String`), `brand` (`String`), `capacity` (`String`).
+   * `brandId` (`ObjectId`, optional ref: `Brand`) and `supplierId` (`ObjectId`, optional ref: `Supplier`); name fields remain display snapshots.
    * `unitOfMeasure` (`String`, enum: `["UNIT", "PCS", "METER", "FOOT", "KG", "LITER", "ROLL", "CYLINDER", "CYL", "PAIR", "CAN", "SET"]`).
    * `unitCost` (`Number`, min 0), `listPrice` (`Number`, min 0).
    * `quantity` (`Number`, min 0): Current live stock level.
@@ -148,7 +149,8 @@ The database is structured in MongoDB under the `ashcol_inventory` database. All
    * `movementType` (`String`, enum: `["DELIVERY", "DISPATCH", "RETURN", "CORRECTION", "TRANSFER_IN", "TRANSFER_OUT", "REQUEST_FULFILLMENT"]`).
    * `quantityDelta` (`Number`): Positive for stock additions, negative for deductions.
    * `beforeQuantity`, `afterQuantity` (`Number`): Quantities before and after the transaction.
-   * `reason`, `workOrderId`, `referenceId` (`String`): Verifiable external references.
+   * `reason`, `referenceNumber`, `jobNumber`, `referenceId` (`String`): Verifiable external references and readable job snapshot.
+   * `jobId` (`ObjectId`): Optional reference to the related job order.
    * `performedBy` (`String`), `performedByName` (`String`): Identity of actor.
    * `createdAt` (`Date`): Timestamp.
 
@@ -156,7 +158,9 @@ The database is structured in MongoDB under the `ashcol_inventory` database. All
    * `_id` (`ObjectId`): Request ID.
    * `branchId` (`String`): Originating branch/service van.
    * `productId` (`ObjectId`, ref: `Product`), `sku`, `itemName`, `unitOfMeasure` (`String`).
-   * `workOrderId` (`String`, required): Job reference number (e.g., `AC-1049`).
+   * `requestNumber` (`String`, unique): Human-readable material request number.
+   * `jobId` (`ObjectId`, optional): Related job order reference.
+   * `jobNumber` (`String`, optional): Human-readable job number snapshot.
    * `quantityNeeded` (`Number`, min > 0): Quantity requested.
    * `status` (`String`, enum: `["PENDING", "APPROVED", "DENIED", "FULFILLED"]`).
    * `requestedBy`, `requestedByName`, `reviewedByName`, `decisionReason`, `fulfilledByName`.

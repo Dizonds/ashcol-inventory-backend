@@ -22,6 +22,7 @@ const productSchema = new mongoose.Schema(
     },
     category: { type: String, required: true },
     brand: { type: String, required: true },
+    brandId: { type: mongoose.Schema.Types.ObjectId, ref: "Brand" },
     capacity: { type: String, default: "" },
     unitOfMeasure: {
       type: String,
@@ -47,6 +48,7 @@ const productSchema = new mongoose.Schema(
     reorderLevel: { type: Number, min: 0, required: true },
     archived: { type: Boolean, default: false },
     supplier: { type: String, default: "" },
+    supplierId: { type: mongoose.Schema.Types.ObjectId, ref: "Supplier" },
     compatibleModels: [{ type: String, trim: true }],
     priceHistory: [
       {
@@ -60,6 +62,8 @@ const productSchema = new mongoose.Schema(
   options,
 );
 productSchema.index({ branchId: 1, sku: 1 }, { unique: true });
+productSchema.index({ brandId: 1 });
+productSchema.index({ supplierId: 1 });
 
 const movementSchema = new mongoose.Schema(
   {
@@ -77,8 +81,9 @@ const movementSchema = new mongoose.Schema(
     beforeQuantity: Number,
     afterQuantity: Number,
     reason: String,
-    workOrderId: String,
-    jobOrderId: { type: mongoose.Schema.Types.ObjectId, ref: "JobOrder" },
+    referenceNumber: String,
+    jobNumber: String,
+    jobId: { type: mongoose.Schema.Types.ObjectId, ref: "JobOrder" },
     referenceId: String,
     transferNumber: String,
     vehicleReceiptNumber: String,
@@ -90,7 +95,8 @@ const movementSchema = new mongoose.Schema(
   options,
 );
 movementSchema.index({ branchId: 1, createdAt: -1 });
-movementSchema.index({ jobOrderId: 1, createdAt: -1 });
+movementSchema.index({ productId: 1, createdAt: -1 });
+movementSchema.index({ jobId: 1, createdAt: -1 });
 movementSchema.index({ transferNumber: 1 }, { unique: true, sparse: true });
 movementSchema.index({ vehicleReceiptNumber: 1 }, { unique: true, sparse: true });
 
@@ -125,9 +131,11 @@ const sessionSchema = new mongoose.Schema({
 const requestSchema = new mongoose.Schema(
   {
     requestNumber: { type: String, unique: true, sparse: true },
+    jobNumber: String,
     branchId: { type: String, required: true },
     destinationVanId: String,
     destinationVanName: String,
+    jobId: { type: mongoose.Schema.Types.ObjectId, ref: "JobOrder" },
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
@@ -139,7 +147,6 @@ const requestSchema = new mongoose.Schema(
     category: String,
     brand: String,
     unitOfMeasure: String,
-    workOrderId: { type: String, required: true },
     quantityNeeded: { type: Number, required: true, min: 0 },
     notes: String,
     status: {
@@ -166,6 +173,8 @@ const requestSchema = new mongoose.Schema(
   },
   options,
 );
+requestSchema.index({ jobId: 1, createdAt: -1 });
+requestSchema.index({ productId: 1, createdAt: -1 });
 
 export const Product = mongoose.model("Product", productSchema, "products");
 export const Movement = mongoose.model(
@@ -196,6 +205,7 @@ export const JobOrder = mongoose.model("JobOrder", new mongoose.Schema({
   vanName: { type: String, required: true },
   status: { type: String, enum: ["OPEN", "COMPLETED", "CANCELLED"], default: "OPEN" },
   isCurrent: { type: Boolean, default: false },
+  archived: { type: Boolean, default: false },
   assignedAt: Date,
   assignedByName: String,
   createdByName: String,

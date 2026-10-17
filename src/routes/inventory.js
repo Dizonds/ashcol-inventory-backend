@@ -7,6 +7,7 @@ import { manage, admin } from "../auth.js";
 import {
   branchScope,
   productData,
+  productDirectoryReferences,
   number,
   text,
   fail,
@@ -69,18 +70,17 @@ router.post("/products", manage, (req, res, next) => {
   ];
   branchScope(req, req.body.branchId)
     .then((branchId) =>
-      transaction((session) => {
-        return Product.create([{ ...data, branchId }], { session }).then(
-          ([item]) => {
-            return recordMovement(
-              item,
-              item.quantity,
-              { movementType: "OPENING", reason: "Initial opening stock" },
-              req.user,
-              session,
-            ).then(() => json(item));
-          },
+      transaction(async (session) => {
+        const directoryReferences = await productDirectoryReferences(data, session);
+        const [item] = await Product.create([{ ...data, ...directoryReferences, branchId }], { session });
+        await recordMovement(
+          item,
+          item.quantity,
+          { movementType: "OPENING", reason: "Initial opening stock" },
+          req.user,
+          session,
         );
+        return json(item);
       }),
     )
     .then((item) => res.status(201).json(item))
@@ -100,7 +100,7 @@ router.put("/products/:id", manage, (req, res, next) => {
           archived: false,
         })
           .session(session)
-          .then((item) => {
+          .then(async (item) => {
             if (!item) fail("Item not found.", 404);
             if (data.unitOfMeasure !== item.unitOfMeasure)
               fail(
@@ -115,7 +115,7 @@ router.put("/products/:id", manage, (req, res, next) => {
                 note: "Unit cost updated",
               });
             }
-            Object.assign(item, data);
+            Object.assign(item, data, await productDirectoryReferences(data, session));
             return item.save({ session });
           })
           .then((item) =>
@@ -145,9 +145,9 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
   if (!Number.isFinite(delta) || delta === 0 || Math.abs(delta) > 100000000)
     fail("Stock change must be a non-zero number.");
   const reason = text(req.body.reason, "Reason");
-  const workOrderId = text(
-    req.body.workOrderId || "",
-    "Job/reference number",
+  const referenceNumber = text(
+    req.body.referenceNumber ?? req.body.workOrderId ?? "",
+    "Reference number",
     false,
   );
   const allowed =
@@ -195,7 +195,7 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
           {
             movementType,
             reason: `${reason}: ${notes}`,
-            workOrderId: workOrderId || "",
+            referenceNumber: referenceNumber || "",
             referenceId: ticket._id,
           },
           req.user,
@@ -219,7 +219,8 @@ router.post("/service-vans/:vanId/consume", (req, res, next) => {
   if (req.body.usageId !== undefined &&
       (typeof req.body.usageId !== "string" || !/^USE\d{4,}$/.test(req.body.usageId)))
     fail("Invalid generated usage ID.");
-  if (!mongoose.isValidObjectId(req.body.jobOrderId)) fail("A current job must be assigned by your admin or manager.");
+  const jobId = req.body.jobId ?? req.body.jobOrderId;
+  if (!mongoose.isValidObjectId(jobId)) fail("A current job must be assigned by your admin or manager.");
   const notes = text(req.body.notes, "Notes");
 
   branchScope(req, req.params.vanId)
@@ -231,7 +232,7 @@ router.post("/service-vans/:vanId/consume", (req, res, next) => {
         fail("Usage ID does not match this service vehicle.");
       if (ticket.requestedBy !== String(req.user._id)) fail("This usage ID belongs to another account.", 403);
       return transaction(async (session) => {
-        const jobFilter = { _id: req.body.jobOrderId, vanId: branchId, status: "OPEN", isCurrent: true };
+        const jobFilter = { _id: jobId, vanId: branchId, status: "OPEN", isCurrent: true };
         if (req.user.role === "EMPLOYEE") jobFilter.assignedTechnicianId = req.user._id;
         const job = await JobOrder.findOneAndUpdate(jobFilter, { $inc: { __v: 1 } }, { new: true, session });
         if (!job) fail("This is no longer your current job. Ask your admin or manager to confirm the assignment.", 409);
@@ -247,8 +248,8 @@ router.post("/service-vans/:vanId/consume", (req, res, next) => {
           {
             movementType: "JOB_CONSUMPTION",
             reason: `Client Installation / Site Project: ${notes}`,
-            workOrderId: job.jobNumber,
-            jobOrderId: job._id,
+            jobNumber: job.jobNumber,
+            jobId: job._id,
             referenceId: ticket._id,
           },
           req.user,
@@ -419,6 +420,8 @@ router.post("/transfers", manage, (req, res, next) => {
                 [
                   {
                     ...productData(source),
+                    brandId: source.brandId,
+                    supplierId: source.supplierId,
                     sku: source.sku,
                     branchId: destinationId,
                     quantity: 0,
@@ -507,7 +510,8 @@ router.get("/movements", (req, res, next) => {
           "itemType",
           "category",
           "reason",
-          "workOrderId",
+          "referenceNumber",
+          "jobNumber",
           "performedByName",
           "referenceId",
           "transferNumber",

@@ -1,6 +1,7 @@
 // Exercise the manager -> technician -> ledger workflow against an isolated database.
 import assert from "node:assert/strict";
 import path from "node:path";
+import fs from "node:fs/promises";
 import express from "express";
 import mongoose from "mongoose";
 import { chromium } from "playwright-core";
@@ -11,7 +12,9 @@ import { hashPassword } from "../src/auth.js";
 import { User, ServiceVan, Product, JobOrder, Movement } from "../src/models.js";
 
 let database, server, browser, failurePage;
+const screenshotDirectory = path.resolve("../screenshots/job-order-updates");
 try {
+  await fs.mkdir(screenshotDirectory, { recursive: true });
   database = await MongoMemoryReplSet.create({ replSet: { count: 1 }, binary: { version: "7.0.14" } });
   await mongoose.connect(database.getUri("job_orders_browser"));
   await initializeDatabase();
@@ -65,6 +68,7 @@ try {
   await manager.getByRole("button", { name: "Assign job", exact: true }).click();
   await manager.getByRole("button", { name: "OK", exact: true }).click();
   await manager.getByText("Current job", { exact: true }).waitFor();
+  await manager.screenshot({ path: path.join(screenshotDirectory, "job-orders-icon-actions.png"), fullPage: true });
   const job = await JobOrder.findOne({ jobNumber: "JOB0001" });
   assert.ok(job);
 
@@ -89,7 +93,7 @@ try {
     await dialog.waitFor({ state: "hidden" });
   }
   assert.equal(new Set(usedIds).size, 2);
-  assert.equal(await Movement.countDocuments({ jobOrderId: job._id }), 2);
+  assert.equal(await Movement.countDocuments({ jobId: job._id }), 2);
   for (const item of products) assert.equal((await Product.findById(item._id)).quantity, item.quantity - 2);
   await tech.getByRole("button", { name: "Stock Ledger", exact: true }).click();
   const jobHeader = tech.locator("th").filter({ hasText: /JOB\s+ORDER/ });
@@ -110,6 +114,30 @@ try {
   await manager.bringToFront();
   await manager.getByRole("button", { name: /Refresh/ }).first().click();
   await manager.getByText("COMPLETED", { exact: true }).waitFor();
+  // Archiving moves closed work out of the list without deleting its usage.
+  await manager.getByRole("button", { name: "Archive job", exact: true }).click();
+  await manager.getByRole("button", { name: "OK", exact: true }).click();
+  await manager.getByText("JOB - 0001", { exact: true }).waitFor({ state: "hidden" });
+  await manager.getByRole("button", { name: "View archived jobs", exact: true }).click();
+  await manager.getByText("JOB - 0001", { exact: true }).waitFor();
+  await manager.screenshot({ path: path.join(screenshotDirectory, "archived-job-orders.png"), fullPage: true });
+  await manager.getByRole("button", { name: "View details", exact: true }).click();
+  for (const id of usedIds) await manager.getByRole("dialog").getByText(id, { exact: true }).waitFor();
+  await manager.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+  await tech.getByRole("button", { name: "Refresh", exact: true }).click();
+  await tech.getByText("JOB - 0001", { exact: true }).waitFor({ state: "hidden" });
+  await tech.getByRole("button", { name: "View archived jobs", exact: true }).click();
+  await tech.getByText("JOB - 0001", { exact: true }).waitFor();
+  assert.equal(await tech.getByRole("button", { name: "Restore job", exact: true }).count(), 0);
+  assert.equal(await tech.getByRole("button", { name: "Archive job", exact: true }).count(), 0);
+  await manager.getByRole("button", { name: "Restore job", exact: true }).click();
+  await manager.getByRole("button", { name: "OK", exact: true }).click();
+  await manager.getByText("JOB - 0001", { exact: true }).waitFor({ state: "hidden" });
+  await manager.getByRole("button", { name: "View active jobs", exact: true }).click();
+  await manager.getByText("JOB - 0001", { exact: true }).waitFor();
+  assert.equal((await JobOrder.findById(job._id)).status, "COMPLETED");
+  assert.equal((await JobOrder.findById(job._id)).archived, false);
+  await manager.screenshot({ path: path.join(screenshotDirectory, "job-orders-icons-and-archive.png"), fullPage: true });
   failurePage = tech;
   await tech.bringToFront();
   await tech.getByRole("button", { name: "Service Vehicles", exact: true }).click();
@@ -120,7 +148,7 @@ try {
   await missingJobDialog.getByRole("button", { name: "Record Usage", exact: true }).click();
   assert.equal(await missingJobDialog.getByRole("textbox", { name: "Current Job Order", exact: true }).getAttribute("aria-invalid"), "true");
   assert.deepEqual(errors, []);
-  console.log("Job browser checks passed: manager creates and dispatches the current job, technician records two SKUs without a job dropdown, distinct Usage IDs reconcile with stock and ledger, completion clears the current assignment.");
+  console.log("Job browser checks passed: creation, icon actions, dispatch and completion work; closed jobs archive and restore with material history intact; technicians can read their own archives and cannot restore them.");
 } catch (error) {
   if (failurePage) {
     console.error((await failurePage.locator("body").innerText()).slice(0, 5000));

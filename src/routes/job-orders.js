@@ -10,6 +10,9 @@ const visibleTo = (job, user) => user.role !== "EMPLOYEE" || String(job.assigned
 
 router.get("/job-orders", (req, res, next) => {
   const filter = req.user.role === "EMPLOYEE" ? { assignedTechnicianId: req.user._id } : {};
+  if (req.query.archived !== undefined && !["true", "false"].includes(req.query.archived))
+    fail("Choose a valid archive filter.");
+  filter.archived = req.query.archived === "true" ? true : { $ne: true };
   if (req.query.status) {
     if (!["OPEN", "COMPLETED", "CANCELLED"].includes(req.query.status)) fail("Choose a valid job status.");
     filter.status = req.query.status;
@@ -58,9 +61,31 @@ router.get("/job-orders/:id", (req, res, next) => {
   validId(req.params.id);
   JobOrder.findById(req.params.id).then(async (job) => {
     if (!job || !visibleTo(job, req.user)) fail("Job order not found.", 404);
-    const movements = await Movement.find({ jobOrderId: job._id }).sort({ createdAt: -1, _id: -1 });
+    const movements = await Movement.find({ jobId: job._id }).sort({ createdAt: -1, _id: -1 });
     res.json({ ...json(job), movements: movements.map(inventoryRecordJson) });
   }).catch(next);
+});
+
+router.delete("/job-orders/:id", manage, (req, res, next) => {
+  validId(req.params.id);
+  transaction(async (session) => {
+    const job = await JobOrder.findOneAndUpdate({
+      _id: req.params.id, archived: { $ne: true },
+      status: { $in: ["COMPLETED", "CANCELLED"] }, isCurrent: { $ne: true },
+    }, { $set: { archived: true }, $inc: { __v: 1 } }, { new: true, session });
+    if (!job) fail("Only completed or cancelled jobs can be archived. The job may already be archived.", 409);
+    return json(job);
+  }).then((job) => res.json(job)).catch(next);
+});
+
+router.post("/job-orders/:id/restore", manage, (req, res, next) => {
+  validId(req.params.id);
+  transaction(async (session) => {
+    const job = await JobOrder.findOneAndUpdate({ _id: req.params.id, archived: true },
+      { $set: { archived: false }, $inc: { __v: 1 } }, { new: true, session });
+    if (!job) fail("Archived job order not found.", 404);
+    return json(job);
+  }).then((job) => res.json(job)).catch(next);
 });
 
 router.patch("/job-orders/:id", manage, (req, res, next) => {
@@ -74,7 +99,7 @@ router.patch("/job-orders/:id", manage, (req, res, next) => {
   if (fields.vanId === "LOCAL-WAREHOUSE") fail("Assign a service vehicle to the job.");
   transaction(async (session) => {
     await Counter.findOneAndUpdate({ _id: "job-dispatch" }, { $inc: { value: 1 } }, { upsert: true, new: true, session });
-    const job = await JobOrder.findOne({ _id: req.params.id, status: "OPEN" }).session(session);
+    const job = await JobOrder.findOne({ _id: req.params.id, status: "OPEN", archived: { $ne: true } }).session(session);
     if (!job) fail("Only open job orders can be edited.", 409);
     const van = await lockServiceVan(fields.vanId, session);
     const technician = await User.findOneAndUpdate(
@@ -104,7 +129,7 @@ router.patch("/job-orders/:id/assignment", manage, (req, res, next) => {
   transaction(async (session) => {
     // Serialize dispatches so simultaneous assignments cannot create two current jobs.
     await Counter.findOneAndUpdate({ _id: "job-dispatch" }, { $inc: { value: 1 } }, { upsert: true, new: true, session });
-    const job = await JobOrder.findOne({ _id: req.params.id, status: "OPEN" }).session(session);
+    const job = await JobOrder.findOne({ _id: req.params.id, status: "OPEN", archived: { $ne: true } }).session(session);
     if (!job) fail("Only an open job can be assigned.", 409);
     const van = await lockServiceVan(job.vanId, session);
     const technician = await User.findOneAndUpdate(
@@ -130,7 +155,7 @@ router.patch("/job-orders/:id/status", (req, res, next) => {
   if (!["COMPLETED", "CANCELLED"].includes(status)) fail("Choose Complete or Cancel.");
   if (req.user.role === "EMPLOYEE" && status !== "COMPLETED") fail("Only a manager can cancel a job.", 403);
   transaction(async (session) => {
-    const filter = { _id: req.params.id, status: "OPEN" };
+    const filter = { _id: req.params.id, status: "OPEN", archived: { $ne: true } };
     if (req.user.role === "EMPLOYEE") {
       filter.assignedTechnicianId = req.user._id;
       filter.isCurrent = true;

@@ -47,15 +47,15 @@ export function planTwoMonthDemo(items, { now = new Date(), random = randomInt }
       const quantityDelta = inbound ? amount : -amount;
       const createdAt = new Date(times[index] + index); // Unique times keep ledger ordering unambiguous.
       const date = new Date(day + 8 * 3600000).toISOString().slice(0, 10).replaceAll("-", "");
-      const workOrderId = `DEMO-${inbound ? "DR" : "SVC"}-${date}-${String(index + 1).padStart(2, "0")}`;
+      const referenceNumber = `DEMO-${inbound ? "DR" : "SVC"}-${date}-${String(index + 1).padStart(2, "0")}`;
       const reason = inbound
-        ? `Supplier Delivery / Restock: [DEMO] ${item.supplier || "HVAC supplier"}; delivery receipt ${workOrderId}`
+        ? `Supplier Delivery / Restock: [DEMO] ${item.supplier || "HVAC supplier"}; delivery receipt ${referenceNumber}`
         : tool
           ? `Client Installation / Site Project: [DEMO] equipment issued for ${pick(locations, random)}`
           : `${random(0, 100) < 15 ? "Parts Sale" : "Client Installation / Site Project"}: [DEMO] ${pick(locations, random)}`;
       const afterQuantity = beforeQuantity + quantityDelta;
       balances.set(key, afterQuantity);
-      activity.push({ item, quantityDelta, beforeQuantity, afterQuantity, createdAt, workOrderId, reason, movementType: inbound ? "STOCK_IN" : "STOCK_OUT" });
+      activity.push({ item, quantityDelta, beforeQuantity, afterQuantity, createdAt, referenceNumber, reason, movementType: inbound ? "STOCK_IN" : "STOCK_OUT" });
     }
   }
   return { start, end, activity, balances };

@@ -9,6 +9,8 @@
     "bootstrap": "node scripts/bootstrap.js",
     "seed:demo-two-months": "node scripts/seed-two-month-demo.js",
     "migrate:service-vans": "node scripts/migrate-service-vans.js",
+    "migrate:job-links": "node scripts/migrate-job-links.js",
+    "migrate:catalog-links": "node scripts/migrate-catalog-links.js",
     "migrate": "node scripts/migrate.js",
     "test": "node --test --test-concurrency=1 test/brandLogos.test.js test/liveUpdates.test.js test/inventory.test.js",
     "test:browser": "node scripts/qa-smoke.js",

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import { Product, PartRequest, RequestReference, ServiceVan, User } from "../models.js";
+import { Product, PartRequest, RequestReference, ServiceVan, User, JobOrder } from "../models.js";
 import { reserveRequestReference } from "../request-numbers.js";
 import { manage } from "../auth.js";
 import {
@@ -53,6 +53,8 @@ router.post("/requests", (req, res, next) => {
   if (req.body.requestId !== undefined &&
       (typeof req.body.requestId !== "string" || !/^[a-f0-9]{24}$/i.test(req.body.requestId)))
     fail("Invalid request ID.");
+  if (req.body.jobId !== undefined && !mongoose.isValidObjectId(req.body.jobId))
+    fail("Invalid job ID.");
   const requestId = new mongoose.Types.ObjectId(req.body.requestId);
   const notes = text(req.body.notes || "", "Notes", false);
   branchScope(req, req.body.branchId)
@@ -66,6 +68,13 @@ router.post("/requests", (req, res, next) => {
         if (req.user.role === "EMPLOYEE" && branchId !== "LOCAL-WAREHOUSE")
           fail("Request materials from the warehouse for your assigned vehicle.");
         const destination = req.user.role === "EMPLOYEE" ? await requestVehicle(req.user, session) : null;
+        const job = req.body.jobId === undefined ? null : await JobOrder.findOne({ _id: req.body.jobId, status: "OPEN" }).session(session);
+        if (req.body.jobId !== undefined && !job) fail("Choose an open job order.", 404);
+        if (job && req.user.role === "EMPLOYEE" &&
+            (String(job.assignedTechnicianId) !== String(req.user._id) || !job.isCurrent))
+          fail("You can only link a request to your current job.", 403);
+        if (job && destination && job.vanId !== destination._id)
+          fail("The selected job must be assigned to your service vehicle.", 409);
         await lockServiceVan(branchId, session);
         // Touch the product so request creation cannot race with archiving.
         return Product.findOneAndUpdate(
@@ -82,6 +91,7 @@ router.post("/requests", (req, res, next) => {
                   _id: requestId,
                   requestNumber: reference.requestNumber,
                   branchId,
+                  ...(job ? { jobId: job._id, jobNumber: job.jobNumber } : {}),
                   ...(destination ? { destinationVanId: destination._id, destinationVanName: destination.name } : {}),
                   productId: item._id,
                   sku: item.sku,
@@ -91,7 +101,6 @@ router.post("/requests", (req, res, next) => {
                   brand: item.brand,
                   unitOfMeasure: item.unitOfMeasure,
                   quantityNeeded,
-                  workOrderId: reference.requestNumber,
                   notes,
                   requestedBy: String(req.user._id),
                   requestedByName: req.user.fullName,
@@ -197,7 +206,6 @@ router.patch("/requests/:id", manage, (req, res, next) => {
                 {
                   movementType: "REQUEST_ISSUE",
                   reason: "Approved material request fulfilled",
-                  workOrderId: request.requestNumber,
                   requestNumber: request.requestNumber,
                   referenceId: String(request._id),
                 },
@@ -210,11 +218,12 @@ router.patch("/requests/:id", manage, (req, res, next) => {
                   .some((field) => target[field] !== source[field])))
                   fail("Destination SKU is archived or its item details differ. Resolve the catalog mismatch first.", 409);
                 if (!target) [target] = await Product.create([{
-                  ...productData(source), sku: source.sku, branchId: destination._id, quantity: 0,
+                  ...productData(source), brandId: source.brandId, supplierId: source.supplierId,
+                  sku: source.sku, branchId: destination._id, quantity: 0,
                 }], { session });
                 await changeStock(target._id, destination._id, request.quantityNeeded, {
                   movementType: "TRANSFER_IN", reason: "Approved material request received in assigned vehicle",
-                  workOrderId: request.requestNumber, requestNumber: request.requestNumber, referenceId: String(request._id),
+                  requestNumber: request.requestNumber, referenceId: String(request._id),
                 }, req.user, session);
               }
               return request.save({ session });

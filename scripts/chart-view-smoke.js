@@ -28,7 +28,7 @@ try {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   yesterday.setHours(0, 0, 0, 0);
-  entries.push({ productId: other._id, branchId: "LOCAL-WAREHOUSE", sku: other.sku, itemName: other.name, unitOfMeasure: "CYL", movementType: "STOCK_IN", quantityDelta: 9, beforeQuantity: 0, afterQuantity: 9, referenceId: "DEMO-RESTOCK", workOrderId: "JOB-DEMO", performedByName: "Demo Manager", reason: "Supplier restock for testing", createdAt: yesterday });
+  entries.push({ productId: other._id, branchId: "LOCAL-WAREHOUSE", sku: other.sku, itemName: other.name, unitOfMeasure: "CYL", movementType: "STOCK_IN", quantityDelta: 9, beforeQuantity: 0, afterQuantity: 9, referenceId: "DEMO-RESTOCK", referenceNumber: "JOB-DEMO", performedByName: "Demo Manager", reason: "Supplier restock for testing", createdAt: yesterday });
   await Movement.insertMany(entries);
   const web = express();
   web.use((req, res, next) => req.path.startsWith("/api/") ? app(req, res, next) : next());

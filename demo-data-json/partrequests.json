@@ -10,7 +10,7 @@
     "sku": "FRN-R410A-11.3",
     "itemName": "DuPont Suva Freon R410A Refrigerant Tank",
     "unitOfMeasure": "CYL",
-    "workOrderId": "AC-SRV-2026-44",
+    "jobNumber": "AC-SRV-2026-44",
     "quantityNeeded": {
       "$numberInt": "2"
     },
