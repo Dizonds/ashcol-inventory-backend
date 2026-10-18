@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Product, Supplier } from "../src/models.js";
 
 async function run() {
-  await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory");
+  await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0");
   const figmaSuppliers = [
     { name: "Carrier Air Conditioning Philippines, Inc.", contactPerson: "Michael Santos", phone: "+63 917 845 2310", email: "msantos@carrierph.com", terms: "Net 30 Days", address: "Pasig City, Metro Manila" },
     { name: "Daikin Philippines Corporation", contactPerson: "Jennifer Lim", phone: "+63 918 334 5621", email: "jlim@daikin.com.ph", terms: "Net 30 Days", address: "Alabang, Muntinlupa City" },

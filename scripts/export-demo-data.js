@@ -5,7 +5,7 @@ import { BSON } from "mongodb";
 import path from "node:path";
 
 async function main() {
-  const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory";
+  const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0";
   await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
   const db = mongoose.connection.db;
   const output = path.resolve("demo-data-json");

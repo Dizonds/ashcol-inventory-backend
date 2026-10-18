@@ -45,20 +45,7 @@ export function admin(req, res, next) {
   next();
 }
 export const authRouter = Router();
-const attempts = new Map();
 authRouter.post("/login", (req, res, next) => {
-  const key = req.ip;
-  let attempt = attempts.get(key);
-  if (!attempt || attempt.until < Date.now()) {
-    if (attempts.size > 10000) attempts.clear();
-    attempt = { count: 0, until: Date.now() + 15 * 60 * 1000 };
-    attempts.set(key, attempt);
-  }
-  attempt.count += 1;
-  if (attempt.count > 20)
-    return res
-      .status(429)
-      .json({ error: "Too many login attempts. Try again in 15 minutes." });
   let user;
 let password;
   Promise.resolve()
@@ -83,7 +70,6 @@ let password;
         userId: user._id,
         expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000),
       }).then(() => {
-        attempts.delete(key);
         res.json({ token, user: json(user) });
       });
     })

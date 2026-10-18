@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 const file = new URL('../../.local-backups/qa-fix-account-fingerprint.json', import.meta.url);
 try {
-  await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ashcol_inventory?replicaSet=rs0');
+  await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0');
   const accounts = await mongoose.connection.collection('users').find({}).sort({ _id: 1 }).toArray();
   const current = { count: accounts.length, fingerprint: createHash('sha256').update(JSON.stringify(accounts)).digest('hex') };
   if (process.argv[2] === 'before') {

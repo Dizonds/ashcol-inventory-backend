@@ -7,6 +7,7 @@
     "dev": "node --watch src/index.js",
     "mongo": "\"C:\\Program Files\\MongoDB\\Server\\8.3\\bin\\mongod.exe\" --dbpath C:\\Users\\usher\\ASHCOL\\.local-mongo --replSet rs0 --bind_ip 127.0.0.1 --port 27018",
     "bootstrap": "node scripts/bootstrap.js",
+    "seed:demo-accounts": "node scripts/seed-demo-accounts.js",
     "seed:demo-two-months": "node scripts/seed-two-month-demo.js",
     "migrate:service-vans": "node scripts/migrate-service-vans.js",
     "migrate:job-links": "node scripts/migrate-job-links.js",

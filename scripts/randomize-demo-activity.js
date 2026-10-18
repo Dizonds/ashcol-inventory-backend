@@ -7,7 +7,7 @@ import { Product, Movement, MovementTicket } from "../src/models.js";
 import { reserveMovementTicket } from "../src/movement-tickets.js";
 import { planDemoActivity } from "./demo-activity.js";
 
-await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory?replicaSet=rs0");
+await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0");
 try {
   const products = await Product.find().lean();
   const original = await Movement.find().sort({ createdAt: 1, _id: 1 }).lean();

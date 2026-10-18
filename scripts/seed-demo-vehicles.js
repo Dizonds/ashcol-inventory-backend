@@ -12,7 +12,7 @@ const vehicles = [
 
 async function main() {
   await mongoose.connect(
-    process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory",
+    process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0",
     { serverSelectionTimeoutMS: 5000 },
   );
 
