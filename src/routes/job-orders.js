@@ -1,8 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import { JobOrder, Counter, User, Movement } from "../models.js";
-import { manage } from "../auth.js";
-import { text, fail, json, transaction, lockServiceVan, branchScope, inventoryRecordJson } from "../helpers.js";
+import { JobOrder, Counter, User, Movement } from "../database/models.js";
+import { manage } from "../security/auth.js";
+import { text, fail, json, transaction, lockServiceVan, branchScope, inventoryRecordJson } from "../utils/helpers.js";
 
 const router = Router();
 const validId = (id) => { if (!mongoose.isValidObjectId(id)) fail("Invalid job order ID."); };

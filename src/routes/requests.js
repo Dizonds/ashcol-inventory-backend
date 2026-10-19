@@ -1,8 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import { Product, PartRequest, RequestReference, ServiceVan, User, JobOrder } from "../models.js";
-import { reserveRequestReference } from "../request-numbers.js";
-import { manage } from "../auth.js";
+import { Product, PartRequest, RequestReference, ServiceVan, User, JobOrder } from "../database/models.js";
+import { reserveRequestReference } from "../services/numbering/request-numbers.js";
+import { manage } from "../security/auth.js";
 import {
   branchScope,
   number,
@@ -14,7 +14,7 @@ import {
   changeStock,
   lockServiceVan,
   productData,
-} from "../helpers.js";
+} from "../utils/helpers.js";
 
 const router = Router();
 const requestJson = (request) => inventoryRecordJson(request);

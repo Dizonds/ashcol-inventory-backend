@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { streamUpdates, watchMutations } from "../src/liveUpdates.js";
+import { streamUpdates, watchMutations } from "../src/services/liveUpdates.js";
 
 test("live updates publish successful committed mutations and skip failures and ticket creation", () => {
   const messages = [];

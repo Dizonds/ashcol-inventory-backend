@@ -1,0 +1,27 @@
+# Dependencies and generated output.
+node_modules/
+coverage/
+*.log
+*.tmp
+*.temp
+
+# Local environment settings; keep the shared template tracked.
+.env
+.env.*
+!.env.example
+
+# Machine-specific MongoDB launcher.
+/start-db.bat
+
+# Database snapshots and exports stay local. Catalog templates remain tracked.
+/backups/
+/database-archives/
+/demo-data/users.json
+/demo-data/START-HERE.txt
+
+# Local review output.
+/artifacts/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

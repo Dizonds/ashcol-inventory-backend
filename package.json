@@ -1,21 +1,21 @@
 {
-  "name": "ashcol-mongo-server",
+  "name": "ashcol-inventory-backend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "mongo": "\"C:\\Program Files\\MongoDB\\Server\\8.3\\bin\\mongod.exe\" --dbpath C:\\Users\\usher\\ASHCOL\\.local-mongo --replSet rs0 --bind_ip 127.0.0.1 --port 27018",
-    "bootstrap": "node scripts/bootstrap.js",
-    "seed:demo-two-months": "node scripts/seed-two-month-demo.js",
-    "migrate:service-vans": "node scripts/migrate-service-vans.js",
-    "migrate:job-links": "node scripts/migrate-job-links.js",
-    "migrate:catalog-links": "node scripts/migrate-catalog-links.js",
-    "migrate": "node scripts/migrate.js",
-    "test": "node --test --test-concurrency=1 test/brandLogos.test.js test/liveUpdates.test.js test/inventory.test.js",
-    "test:browser": "node scripts/qa-smoke.js",
-    "test:live": "node scripts/live-updates-smoke.js",
-    "test:qa": "node scripts/qa-smoke.js && node scripts/request-fulfillment-smoke.js && node scripts/job-orders-smoke.js && node scripts/live-updates-smoke.js"
+    "bootstrap": "node scripts/setup/bootstrap.js",
+    "seed:demo-two-months": "node scripts/demo/seed-two-month-demo.js",
+    "migrate:service-vans": "node scripts/migrations/migrate-service-vans.js",
+    "migrate:job-links": "node scripts/migrations/migrate-job-links.js",
+    "migrate:catalog-links": "node scripts/migrations/migrate-catalog-links.js",
+    "migrate": "node scripts/migrations/migrate.js",
+    "test": "node --test --test-concurrency=1 test/brandLogos.test.js test/liveUpdates.test.js test/inventory.test.js test/twoMonthDemo.test.js",
+    "test:browser": "node scripts/qa/qa-smoke.js",
+    "test:live": "node scripts/qa/live-updates-smoke.js",
+    "test:qa": "node scripts/qa/qa-smoke.js && node scripts/qa/request-fulfillment-smoke.js && node scripts/qa/job-orders-smoke.js && node scripts/qa/live-updates-smoke.js",
+    "check": "node scripts/check-syntax.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -27,5 +27,10 @@
     "mongodb-memory-server": "^10.4.3",
     "playwright-core": "^1.51.1",
     "supertest": "^7.3.1"
+  },
+  "private": true,
+  "description": "Express and MongoDB API for ASHCOL inventory and service operations.",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   }
 }

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { lookupBrandLogo } from "../src/brandLogos.js";
+import { lookupBrandLogo } from "../src/services/brandLogos.js";
 
 const reply = (body, status = 200) => ({ ok: status === 200, status, json: async () => body });
 

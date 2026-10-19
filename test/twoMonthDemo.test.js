@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { demoPeriod, planTwoMonthDemo } from "../scripts/seed-two-month-demo.js";
+import { demoPeriod, planTwoMonthDemo } from "../scripts/demo/seed-two-month-demo.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import mongoose from "mongoose";
 import { MongoMemoryReplSet } from "mongodb-memory-server";
-import { Product, Movement, MovementTicket, User, Supplier } from "../src/models.js";
+import { Product, Movement, MovementTicket, User, Supplier } from "../src/database/models.js";
 
 test("demo boundaries cover two calendar months in Manila and clamp month ends", () => {
   assert.deepEqual(demoPeriod(new Date("2026-10-17T04:00:00Z")), {
@@ -55,7 +55,7 @@ test("seed imports reconciled history atomically, preserves accounts and supplie
     await Supplier.create({ name: "Concepcion-Carrier Air Conditioning Co.", contactPerson: "Preserve this contact" });
     const originalUsers = await User.collection.find({}).toArray();
     const originalSupplier = await Supplier.collection.findOne({});
-    const runSeed = () => promisify(execFile)(process.execPath, [fileURLToPath(new URL("../scripts/seed-two-month-demo.js", import.meta.url))], {
+    const runSeed = () => promisify(execFile)(process.execPath, [fileURLToPath(new URL("../scripts/demo/seed-two-month-demo.js", import.meta.url))], {
       cwd: fileURLToPath(new URL("..", import.meta.url)), env: { ...process.env, MONGO_URI: uri }, timeout: 60000,
     });
     await runSeed();

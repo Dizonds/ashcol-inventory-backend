@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter, JobOrder, VEHICLE_TYPES } from "../models.js";
-import { admin, manage, hashPassword } from "../auth.js";
-import { text, fail, json, transaction, lockServiceVan } from "../helpers.js";
-import { updateAccount, validateNewPassword } from "../accounts.js";
-import { getBrandLogo } from "../brandLogos.js";
+import { ServiceVan, Brand, User, Supplier, Product, PartRequest, Session, Counter, JobOrder, VEHICLE_TYPES } from "../database/models.js";
+import { admin, manage, hashPassword } from "../security/auth.js";
+import { text, fail, json, transaction, lockServiceVan } from "../utils/helpers.js";
+import { updateAccount, validateNewPassword } from "../security/accounts.js";
+import { getBrandLogo } from "../services/brandLogos.js";
 
 const router = Router();
 

@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import { authRouter, authenticate } from "./auth.js";
+import { authRouter, authenticate } from "./security/auth.js";
 import directory from "./routes/directory.js";
 import inventory from "./routes/inventory.js";
 import requests from "./routes/requests.js";
 import jobOrders from "./routes/job-orders.js";
-import { updateAccount } from "./accounts.js";
-import { streamUpdates, watchMutations } from "./liveUpdates.js";
+import { updateAccount } from "./security/accounts.js";
+import { streamUpdates, watchMutations } from "./services/liveUpdates.js";
 
 const app = express();
 app.disable("x-powered-by");

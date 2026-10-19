@@ -1,4 +1,4 @@
-// Integration tests use an isolated temporary replica set, never server/.env.
+// Integration tests use an isolated temporary replica set, never the configured inventory database.
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
@@ -7,9 +7,9 @@ import { MongoMemoryReplSet } from "mongodb-memory-server";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import app from "../src/app.js";
-import { initializeDatabase } from "../src/setup.js";
-import { hashPassword } from "../src/auth.js";
-import { assignExistingTransferNumbers } from "../src/transfer-numbers.js";
+import { initializeDatabase } from "../src/database/setup.js";
+import { hashPassword } from "../src/security/auth.js";
+import { assignExistingTransferNumbers } from "../src/services/numbering/transfer-numbers.js";
 import {
   Product,
   Movement,
@@ -19,7 +19,7 @@ import {
   Session,
   JobOrder,
   Supplier,
-} from "../src/models.js";
+} from "../src/database/models.js";
 
 let database;
 let adminToken;
@@ -1780,7 +1780,7 @@ test("legacy migration assigns explicit ownership without inventing historical b
   });
   await promisify(execFile)(
     process.execPath,
-    ["scripts/migrate.js", branchId],
+    ["scripts/migrations/migrate.js", branchId],
     {
       cwd: process.cwd(),
       env: { ...process.env, MONGO_URI: database.getUri("inventory_test") },
@@ -1803,7 +1803,7 @@ test("legacy migration refuses ambiguous duplicate SKUs without partial updates"
   const inserted = await Product.collection.insertMany([first, second]);
   try {
     await assert.rejects(
-      promisify(execFile)(process.execPath, ["scripts/migrate.js", branchId], {
+      promisify(execFile)(process.execPath, ["scripts/migrations/migrate.js", branchId], {
         cwd: process.cwd(),
         env: { ...process.env, MONGO_URI: database.getUri("inventory_test") },
       }),

@@ -17,17 +17,17 @@ Expired or revoked login sessions return to the login screen.
 
 The selected navigation page is saved in `sessionStorage` under
 `ashcol_inventory_page`. Reloading the tab restores that page after authentication.
-Unknown pages or pages forbidden for the current role fall back to Overview.
+Unknown pages or pages forbidden for the current role fall back to the role's home page.
 Logging out clears the saved page.
 
 The broadcaster runs in one backend process. Updates made through that backend
 are shared between browser sessions. Direct database edits and separate backend
 processes would require a shared change stream or message broker.
 
-To verify two real browser sessions with a disposable database:
+To verify independent browser sessions with a disposable database:
 
-1. Build the React app with `npm run build` in `ashcolinventoryreactfinal/ashcolinventory`.
-2. Run `npm run test:live` in `ashcolinventory_backend_final`.
+1. Build the React app with `npm run build` in `ashcol-inventory-frontend`.
+2. Run `npm run test:live` in `ashcol-inventory-backend`.
 
 The browser test checks vehicle assignment/unassignment, brand updates, retained
 drafts, and page restoration after reload. It never loads the live database's `.env`.

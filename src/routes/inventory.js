@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { randomUUID } from "node:crypto";
 import mongoose from "mongoose";
-import { Product, Movement, ServiceVan, PartRequest, MovementTicket, JobOrder } from "../models.js";
-import { reserveMovementTicket } from "../movement-tickets.js";
-import { manage, admin } from "../auth.js";
+import { Product, Movement, ServiceVan, PartRequest, MovementTicket, JobOrder } from "../database/models.js";
+import { reserveMovementTicket } from "../services/numbering/movement-tickets.js";
+import { manage } from "../security/auth.js";
 import {
   branchScope,
   productData,
@@ -17,7 +17,7 @@ import {
   transaction,
   recordMovement,
   changeStock,
-} from "../helpers.js";
+} from "../utils/helpers.js";
 
 const router = Router();
 router.post("/movement-tickets", manage, (req, res, next) => {
