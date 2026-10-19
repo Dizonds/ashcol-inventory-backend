@@ -1,8 +1,8 @@
 import "dotenv/config";
 import fs from "node:fs/promises";
 import mongoose from "mongoose";
-import { Product, User, ServiceVan, Supplier, PartRequest, JobOrder } from "../src/models.js";
-import { reserveRequestReference } from "../src/request-numbers.js";
+import { Product, User, ServiceVan, Supplier, PartRequest, JobOrder } from "../src/database/models.js";
+import { reserveRequestReference } from "../src/services/numbering/request-numbers.js";
 
 // Idempotent: fills suppliers, vans, and technician/manager activity without touching existing products or accounts.
 const readDemo = async (name) =>

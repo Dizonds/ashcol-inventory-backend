@@ -5,8 +5,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-<<<<<<< HEAD
     "bootstrap": "node scripts/setup/bootstrap.js",
+    "seed:demo-accounts": "node scripts/seed-demo-accounts.js",
     "seed:demo-two-months": "node scripts/demo/seed-two-month-demo.js",
     "migrate:service-vans": "node scripts/migrations/migrate-service-vans.js",
     "migrate:job-links": "node scripts/migrations/migrate-job-links.js",
@@ -17,20 +17,6 @@
     "test:live": "node scripts/qa/live-updates-smoke.js",
     "test:qa": "node scripts/qa/qa-smoke.js && node scripts/qa/request-fulfillment-smoke.js && node scripts/qa/job-orders-smoke.js && node scripts/qa/live-updates-smoke.js",
     "check": "node scripts/check-syntax.js"
-=======
-    "mongo": "\"C:\\Program Files\\MongoDB\\Server\\8.3\\bin\\mongod.exe\" --dbpath C:\\Users\\usher\\ASHCOL\\.local-mongo --replSet rs0 --bind_ip 127.0.0.1 --port 27018",
-    "bootstrap": "node scripts/bootstrap.js",
-    "seed:demo-accounts": "node scripts/seed-demo-accounts.js",
-    "seed:demo-two-months": "node scripts/seed-two-month-demo.js",
-    "migrate:service-vans": "node scripts/migrate-service-vans.js",
-    "migrate:job-links": "node scripts/migrate-job-links.js",
-    "migrate:catalog-links": "node scripts/migrate-catalog-links.js",
-    "migrate": "node scripts/migrate.js",
-    "test": "node --test --test-concurrency=1 test/brandLogos.test.js test/liveUpdates.test.js test/inventory.test.js",
-    "test:browser": "node scripts/qa-smoke.js",
-    "test:live": "node scripts/live-updates-smoke.js",
-    "test:qa": "node scripts/qa-smoke.js && node scripts/request-fulfillment-smoke.js && node scripts/job-orders-smoke.js && node scripts/live-updates-smoke.js"
->>>>>>> b62214dba90ab31bf111159bf5ff7a1239539d7d
   },
   "dependencies": {
     "cors": "^2.8.5",
