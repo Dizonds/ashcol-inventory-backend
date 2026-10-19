@@ -1,7 +1,7 @@
 import "dotenv/config";
 import mongoose from "mongoose";
 
-const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory";
+const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0";
 const dbName = new URL(uri).pathname.replace(/^\//, "") || "ashcol_inventory";
 const allowExtraWarehouses = process.argv.includes("--drop-extra-warehouses");
 

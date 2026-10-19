@@ -62,7 +62,7 @@ export function planTwoMonthDemo(items, { now = new Date(), random = randomInt }
 }
 
 async function seed() {
-  await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory?replicaSet=rs0", { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0", { serverSelectionTimeoutMS: 5000 });
   try {
     // This seed initializes an empty inventory; reruns must never duplicate history.
     if (await Product.exists({}) || await Movement.exists({})) {

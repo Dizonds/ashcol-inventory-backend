@@ -4,7 +4,7 @@ import app from "./app.js";
 import { initializeDatabase } from "./database/setup.js";
 
 const PORT = process.env.PORT || 3001;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ashcol_inventory?replicaSet=rs0";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0";
 
 mongoose
   .connect(MONGO_URI)
