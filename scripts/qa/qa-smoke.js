@@ -1,5 +1,4 @@
 import { frontendBuild, artifactsDirectory } from "./environment.js";
-// Full UI/API regression pass against a disposable replica set. Never loads .env.
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import path from "node:path";

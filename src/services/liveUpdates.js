@@ -5,8 +5,6 @@ function send(response, event) {
   response.write(`event: ${event}\ndata: ${JSON.stringify({ revision })}\n\n`);
 }
 
-// Only invalidations are broadcast. Each client reloads data through the normal
-// authenticated endpoints, which retain their existing role and vehicle scopes.
 export function streamUpdates(req, res) {
   res.set({
     "Content-Type": "text/event-stream",

@@ -1,4 +1,3 @@
-// Integration tests use an isolated temporary replica set, never the configured inventory database.
 import { before, after, test } from "node:test";
 import assert from "node:assert/strict";
 import mongoose from "mongoose";
@@ -593,7 +592,6 @@ test("vehicle edits persist metadata and unchanged drivers while rejected edits 
   assert.equal((await call("patch", `/service-vans/${id}`, changed, managerToken)).status, 200);
   let saved = await ServiceVan.findById(id);
   assert.equal(saved.name, changed.name); assert.equal(saved.plateNumber, changed.plateNumber); assert.equal(saved.status, "ON_FIELD");
-  // Returning to base with the same driver must not call the prohibited driver-reassignment path.
   assert.equal((await call("patch", `/service-vans/${id}`, { ...changed, status: "AVAILABLE" }, managerToken)).status, 200);
   await ServiceVan.findByIdAndUpdate(id, { status: "ON_FIELD" });
   const rejected = await call("patch", `/service-vans/${id}`, { name: "Must not persist", plateNumber: "BAD-003", status: "AVAILABLE", driverId: String(other._id) });
@@ -1542,7 +1540,6 @@ test("closed jobs archive and restore with their status, assignment, and materia
   }, employeeToken);
   assert.equal(used.status, 200, JSON.stringify(used.body));
   assert.equal((await call("patch", `/job-orders/${job.id}/status`, { status: "COMPLETED" }, employeeToken)).status, 200);
-  // Existing jobs without the new field must remain in the normal list.
   await JobOrder.collection.updateOne({ _id: new mongoose.Types.ObjectId(job.id) }, { $unset: { archived: "" } });
   assert.ok((await call("get", "/job-orders")).body.some(entry => entry.id === job.id));
   const before = (await call("get", `/job-orders/${job.id}`)).body;

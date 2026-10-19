@@ -30,7 +30,6 @@ function resolveDriver(driverId, driverName, session) {
   return lookup.session(session || null).then(async (user) => {
     if (!user) fail("Selected driver/technician was not found.", 404);
     if (session) {
-      // Coordinate assignment with account removal so deleted users cannot become drivers.
       user = await User.findByIdAndUpdate(user._id, { $inc: { __v: 1 } }, { new: true, session });
       if (!user) fail("Selected driver/technician was not found.", 404);
     }
@@ -94,8 +93,6 @@ router.post("/service-vans", admin, (req, res, next) => {
     .then((item) => res.status(201).json(json(item)))
     .catch(next);
 });
-// Save the vehicle edit form as one transaction: a rejected driver change must
-// not leave metadata or status partially updated.
 router.patch("/service-vans/:id", manage, (req, res, next) => {
   if (req.params.id === "LOCAL-WAREHOUSE") fail("The warehouse is not a service vehicle.");
   const fields = {};
@@ -124,7 +121,6 @@ router.patch("/service-vans/:id", manage, (req, res, next) => {
   }).then(item => res.json(json(item))).catch(next);
 });
 
-// Only idle, unassigned, empty vehicles can be removed.
 router.delete("/service-vans/:id", admin, (req, res, next) => {
   if (req.params.id === "LOCAL-WAREHOUSE") fail("The warehouse is not a service vehicle.");
   transaction(async (session) => {
@@ -143,7 +139,6 @@ router.delete("/service-vans/:id", admin, (req, res, next) => {
     .catch(next);
 });
 
-// Technicians/drivers, managers and admins can update van status (e.g. arrived, on field, available)
 router.patch("/service-vans/:id/status", (req, res, next) => {
   const status = text(req.body.status, "Status");
   if (!["AVAILABLE", "ON_FIELD", "ARRIVED", "MAINTENANCE"].includes(status))
@@ -170,7 +165,6 @@ router.patch("/service-vans/:id/status", (req, res, next) => {
     })
     .catch(next);
 });
-// Assign driver / technician to a van (Managers & Admins)
 router.patch("/service-vans/:id/driver", manage, (req, res, next) => {
   transaction(async (session) => {
       const van = await ServiceVan.findById(req.params.id).session(session);
@@ -293,7 +287,6 @@ router.get("/users", manage, (req, res, next) => {
 });
 router.delete("/users/:id", admin, (req, res, next) => {
   transaction(async (session) => {
-    // Serialize removals so two administrators cannot remove each other at once.
     await Counter.findOneAndUpdate(
       { _id: "user-administration" }, { $inc: { value: 1 } }, { upsert: true, new: true, session },
     );
@@ -326,7 +319,6 @@ router.post("/users", admin, (req, res, next) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail("Enter a valid email.");
   let firstName = typeof req.body.firstName === "string" ? text(req.body.firstName, "First name") : "";
   let lastName = typeof req.body.lastName === "string" ? text(req.body.lastName, "Last name") : "";
-  // Accept the old fullName payload so existing clients can continue to create accounts.
   if (!firstName || !lastName) {
     const legacyName = text(req.body.fullName, "Full name");
     const parts = legacyName.split(/\s+/);

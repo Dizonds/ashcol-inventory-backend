@@ -46,7 +46,6 @@ router.get("/products", (req, res, next) => {
       const enriched = items.map((doc) => {
         const itemObj = json(doc);
         itemObj.approvedRequestQuantity = reservedMap[itemObj.id] || 0;
-        // Approval is demand awaiting fulfillment, not a stock reservation.
         itemObj.reservedQuantity = 0;
         itemObj.availableQuantity = itemObj.quantity;
         return itemObj;
@@ -88,7 +87,6 @@ router.post("/products", manage, (req, res, next) => {
 });
 router.put("/products/:id", manage, (req, res, next) => {
   const data = productData(req.body);
-  // Stock has its own auditable workflow. Specs cannot overwrite a recent dispatch.
   if (req.body.quantity !== undefined)
     fail("Change quantities through Post Movement, not item specifications.");
   branchScope(req, req.body.branchId)
@@ -206,7 +204,6 @@ router.patch("/products/:id/stock", manage, (req, res, next) => {
     .then((item) => res.json(item))
     .catch(next);
 });
-// Employees record materials consumed from their assigned service van.
 router.post("/service-vans/:vanId/usage-ticket", (req, res, next) => {
   branchScope(req, req.params.vanId)
     .then((branchId) => reserveMovementTicket("JOB_CONSUMPTION", String(req.user._id), branchId))
@@ -328,7 +325,6 @@ router.post("/products/:id/restore", manage, (req, res, next) => {
     .then((item) => res.json(item))
     .catch(next);
 });
-// Transfers between the fixed warehouse and a service vehicle allow managers.
 router.post("/transfers", manage, (req, res, next) => {
   if (req.user.role !== "ADMIN" && !req.body.isVanTransfer && !req.body.destinationId?.startsWith("VAN") && !req.body.branchId?.startsWith("VAN")) {
     return res.status(403).json({ error: "Administrator access required." });

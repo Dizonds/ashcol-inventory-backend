@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 import { Product, User, ServiceVan, Supplier, PartRequest, JobOrder } from "../src/database/models.js";
 import { reserveRequestReference } from "../src/services/numbering/request-numbers.js";
 
-// Idempotent: fills suppliers, vans, and technician/manager activity without touching existing products or accounts.
 const readDemo = async (name) =>
   mongoose.mongo.BSON.EJSON.parse(await fs.readFile(new URL(`../demo-data-json/${name}.json`, import.meta.url), "utf8"));
 const hoursAgo = (h) => new Date(Date.now() - h * 3600000);
@@ -24,7 +23,6 @@ async function main() {
   for (const { _id, __v, ...data } of await readDemo("service_vans"))
     await ServiceVan.updateOne({ _id }, { $setOnInsert: data }, { upsert: true, timestamps: false });
 
-  // Technician drives VAN-01 and holds one open job on it.
   await ServiceVan.updateOne({ _id: "VAN-01" }, { $set: { driverId: String(tech._id), driverName: tech.fullName, status: "ON_FIELD" } });
   const van = await ServiceVan.findById("VAN-01").lean();
   const job = await JobOrder.findOneAndUpdate(

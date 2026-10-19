@@ -1,6 +1,5 @@
 import { createHash } from "node:crypto";
 
-// Resolve short inventory labels to their company articles, not similarly named places.
 const companyTitles = {
   carrier: "Carrier Global",
   lg: "LG Electronics",
@@ -22,8 +21,6 @@ async function requestJson(url, fetchImpl) {
   return response.json();
 }
 
-// Wikipedia's summary API resolves the company to a Wikidata entity. P154 is
-// the logo property, so a headquarters photo cannot accidentally become a logo.
 export async function lookupBrandLogo(name, fetchImpl = fetch) {
   const key = name.trim().toLowerCase();
   if (key === "generic parts") return null;
@@ -48,7 +45,6 @@ export async function lookupBrandLogo(name, fetchImpl = fetch) {
   };
 }
 
-// Cache and share in-flight lookups; failures expire quickly to allow retries.
 export function getBrandLogo(name) {
   const key = name.trim().toLowerCase();
   const cached = cache.get(key);

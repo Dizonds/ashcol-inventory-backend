@@ -1,5 +1,4 @@
 import { frontendBuild, artifactsDirectory } from "./environment.js";
-// Exercise the manager -> technician -> ledger workflow against an isolated database.
 import assert from "node:assert/strict";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -116,7 +115,6 @@ try {
   await manager.bringToFront();
   await manager.getByRole("button", { name: /Refresh/ }).first().click();
   await manager.getByText("COMPLETED", { exact: true }).waitFor();
-  // Archiving moves closed work out of the list without deleting its usage.
   await manager.getByRole("button", { name: "Archive job", exact: true }).click();
   await manager.getByRole("button", { name: "OK", exact: true }).click();
   await manager.getByText("JOB - 0001", { exact: true }).waitFor({ state: "hidden" });

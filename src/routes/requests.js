@@ -76,7 +76,6 @@ router.post("/requests", (req, res, next) => {
         if (job && destination && job.vanId !== destination._id)
           fail("The selected job must be assigned to your service vehicle.", 409);
         await lockServiceVan(branchId, session);
-        // Touch the product so request creation cannot race with archiving.
         return Product.findOneAndUpdate(
           { _id: req.body.productId, branchId, archived: false },
           { $inc: { __v: 1 } },
@@ -184,7 +183,6 @@ router.patch("/requests/:id", manage, (req, res, next) => {
               reason: decisionReason,
             });
             if (status === "FULFILLED") {
-              // Validate the original recipient before either side of the transfer changes.
               const requester = mongoose.isValidObjectId(request.requestedBy)
                 ? await User.findByIdAndUpdate(request.requestedBy, { $inc: { __v: 1 } }, { new: true, session }) : null;
               let destination;

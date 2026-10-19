@@ -11,7 +11,6 @@ const BRANCH = "LOCAL-WAREHOUSE";
 const DAY = 86400000;
 const pick = (values, random) => values[random(0, values.length)];
 
-// Calendar boundaries use Manila dates, independently of the machine's timezone.
 export function demoPeriod(now = new Date()) {
   const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Manila", year: "numeric", month: "2-digit", day: "2-digit",
@@ -45,7 +44,7 @@ export function planTwoMonthDemo(items, { now = new Date(), random = randomInt }
         ? Math.max(1, Math.round(target * random(60, 111) / 100) - beforeQuantity)
         : Math.min(beforeQuantity, random(1, maximumIssue + 1));
       const quantityDelta = inbound ? amount : -amount;
-      const createdAt = new Date(times[index] + index); // Unique times keep ledger ordering unambiguous.
+      const createdAt = new Date(times[index] + index);
       const date = new Date(day + 8 * 3600000).toISOString().slice(0, 10).replaceAll("-", "");
       const referenceNumber = `DEMO-${inbound ? "DR" : "SVC"}-${date}-${String(index + 1).padStart(2, "0")}`;
       const reason = inbound
@@ -64,7 +63,6 @@ export function planTwoMonthDemo(items, { now = new Date(), random = randomInt }
 async function seed() {
   await mongoose.connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27018/ashcol_inventory?replicaSet=rs0", { serverSelectionTimeoutMS: 5000 });
   try {
-    // This seed initializes an empty inventory; reruns must never duplicate history.
     if (await Product.exists({}) || await Movement.exists({})) {
       throw new Error("Inventory already contains data. No changes made; this seed only initializes an empty inventory.");
     }
@@ -106,7 +104,6 @@ async function seed() {
         await Product.insertMany(items.map(item => ({ ...item, quantity: plan.balances.get(String(item._id)), updatedAt: plan.activity.filter(entry => entry.item === item).at(-1)?.createdAt || openingAt })), { session });
         const snapshot = item => ({ productId: item._id, branchId: BRANCH, sku: item.sku, itemName: item.name, itemType: item.itemType, category: item.category, brand: item.brand, unitOfMeasure: item.unitOfMeasure, performedBy: String(actor._id), performedByName: actor.fullName });
         await Movement.insertMany(items.map(item => ({ ...snapshot(item), quantityDelta: item.quantity, beforeQuantity: 0, afterQuantity: item.quantity, movementType: "OPENING", reason: "Initial opening stock: [DEMO] two-month sample inventory", createdAt: openingAt, updatedAt: openingAt })), { session });
-        // Reserve contiguous ticket ranges in the same transaction as the ledger.
         const next = {};
         for (const type of ["STOCK_IN", "STOCK_OUT"]) {
           const prefix = type === "STOCK_IN" ? "STI" : "STO";

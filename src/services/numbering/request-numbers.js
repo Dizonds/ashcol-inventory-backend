@@ -13,7 +13,6 @@ export async function reserveRequestReference(requestedBy, id = new mongoose.Typ
   try {
     return await RequestReference.create({ _id: id, requestNumber, requestedBy });
   } catch (error) {
-    // Another server may have assigned this same existing request concurrently.
     if (error.code === 11000) {
       const reference = await RequestReference.findById(id);
       if (reference) return reference;
@@ -27,7 +26,6 @@ export async function assignExistingRequestNumbers() {
     .sort({ createdAt: 1, _id: 1 });
   for (const request of requests) {
     const reference = await reserveRequestReference(request.requestedBy, request._id);
-    // Preserve the original job reference and stock ledger linkage.
     await Movement.updateMany(
       { referenceId: String(request._id), movementType: "REQUEST_ISSUE" },
       { $set: { requestNumber: reference.requestNumber } },

@@ -38,7 +38,6 @@ router.post("/job-orders", manage, (req, res, next) => {
   if (fields.vanId === "LOCAL-WAREHOUSE") fail("Assign a service vehicle to the job.");
   validId(req.body.assignedTechnicianId);
   transaction(async (session) => {
-    // These writes coordinate job assignment with driver changes and account removal.
     const van = await lockServiceVan(fields.vanId, session);
     const technician = await User.findOneAndUpdate(
       { _id: req.body.assignedTechnicianId, role: "EMPLOYEE" }, { $inc: { __v: 1 } }, { new: true, session },
@@ -127,7 +126,6 @@ router.patch("/job-orders/:id", manage, (req, res, next) => {
 router.patch("/job-orders/:id/assignment", manage, (req, res, next) => {
   validId(req.params.id);
   transaction(async (session) => {
-    // Serialize dispatches so simultaneous assignments cannot create two current jobs.
     await Counter.findOneAndUpdate({ _id: "job-dispatch" }, { $inc: { value: 1 } }, { upsert: true, new: true, session });
     const job = await JobOrder.findOne({ _id: req.params.id, status: "OPEN", archived: { $ne: true } }).session(session);
     if (!job) fail("Only an open job can be assigned.", 409);

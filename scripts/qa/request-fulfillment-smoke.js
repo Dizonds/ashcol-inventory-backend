@@ -1,5 +1,4 @@
 import { frontendBuild } from "./environment.js";
-// Real browser workflow with an isolated database; never connects to the live inventory.
 import assert from "node:assert/strict";
 import path from "node:path";
 import express from "express";

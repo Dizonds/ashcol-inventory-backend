@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const options = { timestamps: true };
 export const VEHICLE_TYPES = ["Cargo Van", "Pickup", "SUV"];
-// Existing fleet records remain editable while registration uses the current types.
 const LEGACY_VEHICLE_TYPES = ["Cab Chassis", "Hatchback", "Micro SUV"];
 const productSchema = new mongoose.Schema(
   {
@@ -90,7 +89,7 @@ const movementSchema = new mongoose.Schema(
     requestNumber: String,
     performedBy: String,
     performedByName: String,
-    date: String, // Kept for imported, date-only legacy records.
+    date: String,
   },
   options,
 );
@@ -222,7 +221,6 @@ export const MovementTicket = mongoose.model("MovementTicket", new mongoose.Sche
   branchId: String,
   usedAt: Date,
 }));
-// Mobile fleet records live separately from the fixed Taguig warehouse.
 export const ServiceVan = mongoose.model(
   "ServiceVan",
   (() => {

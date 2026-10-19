@@ -185,7 +185,6 @@ export function inventoryRecordJson(doc) {
   if (product?._id) result.productId = String(product._id);
   return result;
 }
-// One transaction saves the balance and audit entry together (requires a replica set).
 export function transaction(work) {
   return mongoose.connection.transaction(work);
 }
@@ -198,7 +197,6 @@ export async function lockServiceVan(branchId, session) {
   return van;
 }
 export async function recordMovement(item, delta, details, user, session) {
-  // Inventory writes and vehicle deletion must not pass each other unnoticed.
   await lockServiceVan(item.branchId, session);
   const transferNumber = await reserveTransferNumber(details.movementType, session);
   const vehicleReceiptNumber = await reserveVehicleReceiptNumber(details, session);

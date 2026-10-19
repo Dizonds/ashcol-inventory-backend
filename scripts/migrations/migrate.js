@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import { Product, Movement } from "../../src/database/models.js";
 import { productData, checkQuantity, number } from "../../src/utils/helpers.js";
 
-// Explicit, all-or-nothing migration. No database migration runs automatically.
 const branchId = process.argv[2];
 if (!branchId || !/^[A-Za-z0-9-]+$/.test(branchId)) {
   console.error(
@@ -39,7 +38,6 @@ if (!branchId || !/^[A-Za-z0-9-]+$/.test(branchId)) {
             return Promise.resolve();
           })
           .then(() => {
-            // Sequential saves keep transaction behavior easy to inspect.
             return products.reduce(
               (chain, item) =>
                 chain.then(() => {
@@ -76,7 +74,6 @@ if (!branchId || !/^[A-Za-z0-9-]+$/.test(branchId)) {
                     fields.productId = item._id;
                     fields.unitOfMeasure = item.unitOfMeasure;
                   }
-                  // Do not invent missing actors or before/after balances for old records.
                   return Movement.updateOne(
                     { _id: entry._id },
                     { $set: fields },

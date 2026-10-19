@@ -1,6 +1,4 @@
 import { frontendBuild } from "./environment.js";
-// Uses a disposable database and independent admin, manager, and technician sessions.
-// Never loads .env or changes the user's inventory database.
 import assert from "node:assert/strict";
 import path from "node:path";
 import express from "express";
@@ -42,7 +40,6 @@ try {
     const { token } = await login.json();
     const context = await browser.newContext();
     await context.addInitScript((value) => sessionStorage.setItem("ashcol_inventory_token", value), token);
-    // Logo discovery is tested separately; don't call external providers in this test.
     await context.route("**/api/brands/*/logo", (route) => route.fulfill({ json: { logoUrl: null, sourceUrl: null } }));
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));

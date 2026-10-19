@@ -22,7 +22,6 @@ async function reserveNumber(prefix, session) {
 }
 
 export async function assignExistingTransferNumbers() {
-  // Resume after existing numbers if counters were restored independently.
   for (const [prefix, field] of [...Object.values(prefixes).map((prefix) => [prefix, "transferNumber"]), ["VAN", "vehicleReceiptNumber"]]) {
     const [existing] = await Movement.aggregate([
       { $match: { [field]: new RegExp(`^${prefix}\\d+$`) } },
@@ -38,7 +37,6 @@ export async function assignExistingTransferNumbers() {
       const movement = await Movement.findById(entry._id).session(session);
       if (!movement || movement.transferNumber) return;
       const transferNumber = await reserveTransferNumber(movement.movementType, session);
-      // Keep original references, quantities and timestamps as historical evidence.
       await Movement.updateOne({ _id: movement._id }, { $set: { transferNumber } }, { session, timestamps: false });
     });
   }

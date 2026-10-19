@@ -3,7 +3,6 @@ import { Router } from "express";
 import { User, Session } from "../database/models.js";
 import { fail, text, json } from "../utils/helpers.js";
 
-// Store salted scrypt hashes instead of plaintext passwords.
 export function hashPassword(password, salt = randomBytes(16).toString("hex")) {
   return new Promise((resolve, reject) => {
     scrypt(password, salt, 64, (error, key) => {
